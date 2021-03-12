@@ -275,6 +275,11 @@ class TheApp {
     }
   }
   doMatching() {
+    let sortedClientArray = this.buildSortedClientArray(clients);
+    if (sortedClientArray.length === 0) {
+      showAlert('Warning', 'No clients found with "Clerk Confirmation" set to "Yes" with a blank "Match Status".');
+      return;
+    }
     let availabilities = new SheetClass('Ranked Availability');
     let rawAvailabilities = new SheetClass('Availability Raw');
     let attorneys = new SheetClass('Staff List');
@@ -288,7 +293,6 @@ class TheApp {
     let matches = new SheetClass('Created Matches');
     matches.clear();
 
-    let sortedClientArray = this.buildSortedClientArray(clients);
     let lastAvailabilitiesIndex = availabilities.getRowCount();
     let nextMatchIndex = 2;
     let availabilityIndex = 2;
@@ -299,7 +303,9 @@ class TheApp {
         break;
       }
       let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
-      if (emailedMatches.lookupRowNumber('Case Number', clientData[clients.columnIndex('Case Number' + lineSep + 'auto')]) != -1) {
+      let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
+      if (emailedMatches.lookupRowNumber('Case Number', caseNumber) != -1) {
+        showAlert('Warning', 'Case: ' + caseNumber + " has already been emailed, skipping it.");
         continue;
       }
       let availabilityData = availabilities.getRowData(availabilityIndex)[0];
@@ -307,10 +313,14 @@ class TheApp {
       while (availabilityData[availabilityColIndex] <= 0) {
         availabilityIndex++;
         if (availabilityIndex > lastAvailabilitiesIndex) {
-          return;
+          availabilityData = null;
+          break;
         }
         availabilityData = availabilities.getRowData(availabilityIndex)[0];
       };
+      if (!availabilityData) {
+        break;
+      }
       let attorneyName = availabilityData[availabilities.columnIndex('Name')];
       let attorneyData = attorneys.getRowData(attorneys.lookupRowNumber('Name', attorneyName))[0];
       let lawyerName = attorneyName.split(' ');
