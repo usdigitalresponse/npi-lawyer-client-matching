@@ -158,6 +158,13 @@ class SheetClass {
     this.clear();
     this.sheet.getRange(sourceRange).setValues(sData);
   }
+  getAllRows() {
+    let ret = [];
+    for (let i = 0; i < this.getRowCount(); i++) {
+      ret.push(this.getRowData(i + 1)[0]);
+    }
+    return ret;
+  }
 }
 
 class SheetRowIterator {
@@ -401,3 +408,67 @@ function performMatching() { theApp.performMatching(); }
 function emailLawyers() { theApp.emailLawyers(); }
 function doMatching() { theApp.doMatching(); }
 
+// ----------------------- code for automated testing
+class Tester {
+  constructor() {
+    this.testData = [
+      /* week 1 */ [
+        [ 
+          ['Sun Mar 07 2021 01:02:18 GMT-0500 (Eastern Standard Time)', 'Attorney1 Name - Client1 Name', 'Yes, I am available and have no conflict'],
+          ['Mon Mar 08 2021 01:02:18 GMT-0500 (Eastern Standard Time)', 'Attorney2 Name - Client2 Name', 'No...']
+        ],
+        [
+          [ '', 'Attorney1', 'Name', 'chris.keith@gmail.com', 'NPI Staff Attorney', '', '', 'Attorney1 Name' ], 
+          [ '', 'Attorney2', 'Name', 'chris.keith@gmail.com', 'Law Student/Former Law Student', '', '', 'Attorney2 Name' ], 
+          [ '', 'Attorney3', 'Name', 'chris.keith@gmail.com', 'Pro Bono Attorney', '', '', 'Attorney3 Name' ], 
+        ],
+        [
+          [ 'STEVE ', 'TESTING EVICTIONS', 'chris.keith@gmail.com', '1-4734W2', 'https://drive.google.com/drive/folders/1e6CgsjOpG3j5p4RlDpDDYMwTEhqMEqSl', 'XYZ Property Management', 'English', '', 'Initial Submission', '', '', '1', '', '(dd) dd', 'ff, dd, dd, dd', '(901) 867-5309', '', 'bla@bla.com', '2031057', 'Wed Mar 17 2021 00:00:00 GMT-0400 (Eastern Daylight Time)', 'Yes', 'Reassigned', 'Sat Mar 06 2021 22:39:00 GMT-0500 (Eastern Standard Time)', 'Wed Mar 10 2021 00:00:00 GMT-0500 (Eastern Standard Time)', '5', '', '' ]
+        ]
+      ]
+    ]
+  }
+  runTests() {
+
+  }
+  getData(sheetName) {
+    let sheet = new SheetClass(sheetName);
+    let sheetData = sheet.getAllRows();
+    let str = '';
+    let quote = '\'';
+    let maxRows = Math.min(sheetData.length, 4);
+    for (let i = 0; i < maxRows; i++) {
+      if (i > 0) {
+        str += ', ';
+      }
+      str += '[ ';
+      let rowData = sheetData[i];
+      for (let j = 0; j < rowData.length; j++) {
+        let cellValue = rowData[j].toString(); 
+        if (cellValue.includes('\'')) {
+          if (cellValue.includes('"')) {
+            console.log('Cannot handle:  ' + rowData[j]);
+            continue; 
+          } else {
+            quote = '"';
+          }
+        } else {
+          quote = '\'';
+        }
+        if (j > 0) {
+          str += ', ';
+        }
+        str += quote + cellValue + quote;
+      }
+      str += ' ]';
+    }
+    return str;
+  }
+}
+function runTests() {
+  tester = new Tester();
+//  console.log(tester.getData('Confirmations Raw'));
+//  console.log(tester.getData('Staff List'));
+//  console.log(tester.getData('Clients Raw'));
+//  tester.runTests();
+}
