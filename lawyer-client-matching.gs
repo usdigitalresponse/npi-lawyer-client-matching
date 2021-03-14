@@ -12,11 +12,11 @@ function onEdit(e) {
       if (range.getSheet().getName() === 'Confirmations Raw') {
         // TODO: Handle the rare case where more than one row is added at once.
         const lastRow = range.getLastRow();
-        const confirmationsRaw = new SheetClass('Confirmations Raw');
+        const confirmationsRaw = new SheetClass('Confirmations Raw', 0);
         const id = confirmationsRaw.getRowData(lastRow)[0][confirmationsRaw.columnIndex('Case')];
         const response = confirmationsRaw.getRowData(lastRow)[0][confirmationsRaw.columnIndex('Do you accept the case?')];
         if (response === 'Yes, I am available and have no conflict') {
-          const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
+          const awaitingConfirmation = new SheetClass('Awaiting Confirmation', 0);
           const rowNumber = awaitingConfirmation.lookupRowNumber('Attorney Name - Client Name', id) + 1;
           if (rowNumber > 0) {
             awaitingConfirmation.sheet.deleteRow(rowNumber);
@@ -43,8 +43,9 @@ function showAlert(title, msg) {
 
 const maxColumns = 200;
 class SheetClass {
-  constructor(name) {
+  constructor(name, formulaColumns) {
     this.name = name;
+    this.formulaColumns = formulaColumns;
     this.sheet = SpreadsheetApp.getActive().getSheetByName(name);
     this.findLastColumnHeader();
     let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
@@ -67,7 +68,7 @@ class SheetClass {
                   'Sheet: "' + this.name + '" may have more than ' + maxColumns +
                     ' columns. Ignoring columns after: ' + maxColumns + '.')
     }
-    this.lastColumn = this.columnLetterFromIndex(headerData.length - 1);
+    this.lastColumn = this.columnLetterFromIndex(headerData.length - 1 - this.formulaColumns);
   }
   columnIndex(columnName) {
     let index = this.headerData[0].indexOf(columnName);
@@ -181,8 +182,8 @@ class SheetRowIterator {
   }
 }
 
-var clients = new SheetClass('Clients Raw');
-var logSheet = new SheetClass('Do NOT Edit - Log');
+var clients = new SheetClass('Clients Raw', 0);
+var logSheet = new SheetClass('Do NOT Edit - Log', 0);
 var lineSep = String.fromCharCode(10);
 
 function compareByCourtDate(firstElement, secondElement) {
@@ -259,7 +260,7 @@ class TheApp {
     }
   }
   updateStaff(attorneys) {
-    let newStaffList = new SheetClass('New Staff Raw');
+    let newStaffList = new SheetClass('Staff List', 1);
     let nextStaffIndex = attorneys.getRowCount() + 1;
     let d = new Date();
     let newStaffIterator = new SheetRowIterator(newStaffList);
@@ -287,17 +288,17 @@ class TheApp {
       showAlert('Warning', 'No clients found with "Clerk Confirmation" set to "Yes" with a blank "Match Status".');
       return;
     }
-    let availabilities = new SheetClass('Ranked Availability');
-    let rawAvailabilities = new SheetClass('Availability Raw');
-    let attorneys = new SheetClass('Staff List');
+    let availabilities = new SheetClass('Ranked Availability', 0);
+    let rawAvailabilities = new SheetClass('Availability Raw', 0);
+    let attorneys = new SheetClass('Staff List', 1);
 
     availabilities.copyFrom('Availability Raw', 'A2:C' + rawAvailabilities.getRowCount());
     this.cleanUpAvailabilities(availabilities, attorneys);
     availabilities.sortSheet('Type Rank', true);
 //    this.updateStaff(attorneys); // Until the Google Form for adding attorneys is enabled.
     attorneys.sortSheet('FirstName', true);
-    let emailedMatches = new SheetClass('Emailed Matches');
-    let matches = new SheetClass('Created Matches');
+    let emailedMatches = new SheetClass('Emailed Matches', 0);
+    let matches = new SheetClass('Created Matches', 0);
     matches.clear();
 
     let lastAvailabilitiesIndex = availabilities.getRowCount();
@@ -369,11 +370,11 @@ class TheApp {
   emailLawyers() {
     let d = new Date();
     let newCaseCount = 0;
-    let emailedMatches = new SheetClass('Emailed Matches');
-    let awaitingConfirmation = new SheetClass('Awaiting Confirmation');
+    let emailedMatches = new SheetClass('Emailed Matches', 0);
+    let awaitingConfirmation = new SheetClass('Awaiting Confirmation', 0);
     awaitingConfirmation.clear();
     let nextEmailMatchIndex = emailedMatches.getRowCount() + 1;
-    let matches = new SheetClass('Created Matches');
+    let matches = new SheetClass('Created Matches', 0);
     let matchIterator = new SheetRowIterator(matches);
     let matchData;
     while (matchData = matchIterator.getNextRow()) {
@@ -409,30 +410,58 @@ function emailLawyers() { theApp.emailLawyers(); }
 function doMatching() { theApp.doMatching(); }
 
 // ----------------------- code for automated testing
+const STAFF_INDEX = 0;
+const CLIENT_INDEX = 1;
+const AVAILABILITY_INDEX = 2;
 class Tester {
   constructor() {
     this.testData = [
       /* week 1 */ [
+        [
+          [ '', 'Attorney1', 'Name', 'chris.keith@gmail.com', 'NPI Staff Attorney', '', '' ], 
+          [ '', 'Attorney2', 'Name', 'chris.keith@gmail.com', 'Law Student/Former Law Student', '', '' ], 
+          [ '', 'Attorney3', 'Name', 'chris.keith@gmail.com', 'Pro Bono Attorney', '', '' ], 
+        ],
+        [
+          [ 'STEVE ', 'TESTING EVICTIONS', 'chris.keith@gmail.com', '1-4734W2', 'https://drive.google.com/drive/folders/1e6CgsjOpG3j5p4RlDpDDYMwTEhqMEqSl', 
+            'XYZ Property Management', 'English', '', 'Initial Submission', '', 
+            '', '1', '', '(dd) dd', 'ff, dd, dd, dd', 
+            '(901) 867-5309', '', 'bla@bla.com', '2031057', 'Wed Mar 17 2021 00:00:00 GMT-0400 (Eastern Daylight Time)',
+            'Yes', '', '', '', '',
+            '', ''
+          ]
+        ],
         [ 
           ['Sun Mar 07 2021 01:02:18 GMT-0500 (Eastern Standard Time)', 'Attorney1 Name - Client1 Name', 'Yes, I am available and have no conflict'],
           ['Mon Mar 08 2021 01:02:18 GMT-0500 (Eastern Standard Time)', 'Attorney2 Name - Client2 Name', 'No...']
-        ],
-        [
-          [ '', 'Attorney1', 'Name', 'chris.keith@gmail.com', 'NPI Staff Attorney', '', '', 'Attorney1 Name' ], 
-          [ '', 'Attorney2', 'Name', 'chris.keith@gmail.com', 'Law Student/Former Law Student', '', '', 'Attorney2 Name' ], 
-          [ '', 'Attorney3', 'Name', 'chris.keith@gmail.com', 'Pro Bono Attorney', '', '', 'Attorney3 Name' ], 
-        ],
-        [
-          [ 'STEVE ', 'TESTING EVICTIONS', 'chris.keith@gmail.com', '1-4734W2', 'https://drive.google.com/drive/folders/1e6CgsjOpG3j5p4RlDpDDYMwTEhqMEqSl', 'XYZ Property Management', 'English', '', 'Initial Submission', '', '', '1', '', '(dd) dd', 'ff, dd, dd, dd', '(901) 867-5309', '', 'bla@bla.com', '2031057', 'Wed Mar 17 2021 00:00:00 GMT-0400 (Eastern Daylight Time)', 'Yes', 'Reassigned', 'Sat Mar 06 2021 22:39:00 GMT-0500 (Eastern Standard Time)', 'Wed Mar 10 2021 00:00:00 GMT-0500 (Eastern Standard Time)', '5', '', '' ]
         ]
       ]
     ]
   }
+  loadSheet(sheetName, formulaColumns, weekIndex, dataIndex) {
+    let weekData = this.testData[weekIndex];
+    let rowData = weekData[dataIndex];
+    let sheet = new SheetClass(sheetName, formulaColumns);
+    let rowNumber;
+    if (weekIndex === 0) {
+      rowNumber = 2;
+      sheet.clear();
+    } else {
+      rowNumber = sheet.getRowCount() + 1;
+    }
+    for (let i = 0; i < rowData.length; i++) {
+      sheet.setRowData(rowNumber++, [rowData[i]]);
+    }
+  }
   runTests() {
-
+    for (let weekIndex = 0; weekIndex < this.testData.length; weekIndex++) {
+      this.loadSheet('Staff List', 1, weekIndex, STAFF_INDEX);
+      this.loadSheet('Clients Raw', 0, weekIndex, CLIENT_INDEX);
+      this.loadSheet('Availability Raw', 0, weekIndex, AVAILABILITY_INDEX);
+    }
   }
   getData(sheetName) {
-    let sheet = new SheetClass(sheetName);
+    let sheet = new SheetClass(sheetName, 0);
     let sheetData = sheet.getAllRows();
     let str = '';
     let quote = '\'';
@@ -468,7 +497,5 @@ class Tester {
 function runTests() {
   tester = new Tester();
 //  console.log(tester.getData('Confirmations Raw'));
-//  console.log(tester.getData('Staff List'));
-//  console.log(tester.getData('Clients Raw'));
-//  tester.runTests();
+  tester.runTests();
 }
