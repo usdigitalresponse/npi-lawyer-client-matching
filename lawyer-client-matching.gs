@@ -3,7 +3,7 @@ function onOpen() {
     {name: 'Create Matches', functionName: 'performMatching'},
     {name: 'Email Lawyers', functionName: 'emailLawyers'}
   ];
-  SpreadsheetApp.getActive().addMenu('ESP Actions', menuItems); // Not available when running in debug mode in script window.
+  SpreadsheetApp.getActive().addMenu('ESP Actions', menuItems);
 }
 
 function onEdit(e) {
@@ -30,11 +30,16 @@ function showOKAlert(header, body) {
   ui.alert(header, body, ui.ButtonSet.OK);
 }
 
+var runningTests = false;
 function showAlert(title, msg) {
-  try {
-    showOKAlert(title, msg); // Not available when running in debug mode in script window.
-  } catch(err) {
+  if (runningTests) {
     console.log(title + ': ' + msg);
+  } else {
+    try {
+      showOKAlert(title, msg);
+    } catch(err) {
+      console.log(title + ': ' + msg);
+    }
   }
 }
 
@@ -492,31 +497,47 @@ class Tester {
   }
   runTests() {
     if (this.testDataSheet) {
-        let iter = new SheetRowIterator(this.testDataSheet);
-        let testRowData;
-        while (testRowData = iter.getNextRow()) {
-          let action = testRowData[0];
-          switch(action) {
-            case 'load':
-              this.loadAt(2, testRowData[1], testRowData[2], iter);
-              break;
-            case 'append':
-              this.append(testRowData[1], testRowData[2], iter);
-              break;
-            case 'verify':
-              this.verify(testRowData[1], testRowData[2], iter);
-              break;
-            case 'doMatching':
-              theApp.doMatching();
-              break;
-            case 'emailLawyers':
-              theApp.emailLawyers();
-              break;
-            default:
-              showAlert("Warning", "Unknown action: " + action);
-          }
+      runningTests = true;
+      let clearedSheetNames = [
+        'Created Matches',
+        'Emailed Matches',
+        'Awaiting Confirmation',
+        'Confirmations Raw',
+        'Confirmed Matches',
+        'Staff List',
+        'Availability Raw',
+        'Ranked Availability',
+        'Clients Raw'
+      ];
+      for (const name of clearedSheetNames) {
+        (new SheetClass(name)).clear();
+      }
+      let iter = new SheetRowIterator(this.testDataSheet);
+      let testRowData;
+      while (testRowData = iter.getNextRow()) {
+        let action = testRowData[0];
+        switch(action) {
+          case 'load':
+            this.loadAt(2, testRowData[1], testRowData[2], iter);
+            break;
+          case 'append':
+            this.append(testRowData[1], testRowData[2], iter);
+            break;
+          case 'verify':
+            this.verify(testRowData[1], testRowData[2], iter);
+            break;
+          case 'doMatching':
+            theApp.doMatching();
+            break;
+          case 'emailLawyers':
+            theApp.emailLawyers();
+            break;
+          default:
+            showAlert("Warning", "Unknown action: " + action);
         }
+      }
     }
+    runningTests = false;
   }
 }
 function runTests() {
