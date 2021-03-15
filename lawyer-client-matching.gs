@@ -42,33 +42,34 @@ const maxColumns = 200;
 class SheetClass {
   constructor(name) {
     this.name = name;
-    if (name === 'Staff Raw') {
-      this.formulaColumns = 1;
-    } else {
-      this.formulaColumns = 0;
-    }
+    this.formulaColumns = 0;
     this.sheet = SpreadsheetApp.getActive().getSheetByName(name);
     this.findLastColumnHeader();
     let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
     this.headerData = headerRange.getValues();
   }
-  findLastColumnHeader() {
-    let rangeSpec = 'A1:' + this.columnLetterFromIndex(maxColumns - 1) + '1';
-    let headerRange = this.sheet.getRange(rangeSpec);
-    let headerData = headerRange.getValues()[0];
+  removeEmptyCells(rowData) {
     let i;
-    for (i = maxColumns - 1; i >= 0; i--) {
-      if (headerData[i] === '') {
-        headerData.pop();
+    let lastCol = rowData.length - 1;
+    for (i = lastCol; i >= 0; i--) {
+      if (rowData[i] === '') {
+        rowData.pop();
       } else {
         break;
       }
     }
+  }
+  findLastColumnHeader() {
+    let rangeSpec = 'A1:' + this.columnLetterFromIndex(maxColumns - 1) + '1';
+    let headerRange = this.sheet.getRange(rangeSpec);
+    let headerData = headerRange.getValues()[0];
+    this.removeEmptyCells(headerData);
     if (headerData.length === maxColumns) {
       showAlert('Warning',
                   'Sheet: "' + this.name + '" may have more than ' + maxColumns +
                     ' columns. Ignoring columns after: ' + maxColumns + '.')
     }
+    this.headerData = headerData;
     this.lastColumn = this.columnLetterFromIndex(headerData.length - 1 - this.formulaColumns);
   }
   columnIndex(columnName) {
@@ -411,10 +412,39 @@ function emailLawyers() { theApp.emailLawyers(); }
 function doMatching() { theApp.doMatching(); }
 
 // ----------------------- code for automated testing
+// Google Javascript isn't ES6,so no support for 'super' keyword. Thus the 'has-a' relationship. :(
+class BaseSheetClass {
+  constructor(name) {
+    this.subSheet = new SheetClass(name);
+    this.lastColumn = this.subSheet.columnLetterFromIndex(maxColumns);
+  }
+  getRowCount() {
+    return this.subSheet.getRowCount();
+  }
+  getRowData(rowNumber) {
+    let rangeSpec = 'A' + rowNumber + ':' + this.lastColumn + rowNumber;
+    let range = this.subSheet.sheet.getRange(rangeSpec);
+    let ret = range.getValues();
+    this.subSheet.removeEmptyCells(ret);
+    return ret;
+  }
+  removeEmptyCells(sheet, rowData) {
+    let i;
+    let lastCol = rowData.length - 1;
+    let len = sheet.headerData[0].length;
+    for (i = lastCol; i >= 0 && rowData.length > len; i--) {
+      if (rowData[i] === '') {
+        rowData.pop();
+      } else {
+        break;
+      }
+    }
+  }
+}
 class Tester {
   constructor() {
     try {
-      this.testDataSheet = new SheetClass('Test Data');
+      this.testDataSheet = new BaseSheetClass('Test Data');
     } catch(e) {
       console.log(e.toString());
       this.testDataSheet = null;
@@ -424,7 +454,9 @@ class Tester {
     iter.getNextRow(); // Skip header.
     let sheet = new SheetClass(sheetName);
     while (rowCount--) {
-      sheet.setRowData(startRowNum++, [iter.getNextRow()]);
+      let rowData = iter.getNextRow();
+      this.testDataSheet.removeEmptyCells(sheet, rowData);
+      sheet.setRowData(startRowNum++, [rowData]);
     }
   }
   append(sheetName, rowCount, iter) {
