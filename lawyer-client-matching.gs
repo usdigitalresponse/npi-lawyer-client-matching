@@ -42,7 +42,6 @@ const maxColumns = 200;
 class SheetClass {
   constructor(name) {
     this.name = name;
-    this.formulaColumns = 0;
     this.sheet = SpreadsheetApp.getActive().getSheetByName(name);
     this.findLastColumnHeader();
     let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
@@ -70,7 +69,7 @@ class SheetClass {
                     ' columns. Ignoring columns after: ' + maxColumns + '.')
     }
     this.headerData = headerData;
-    this.lastColumn = this.columnLetterFromIndex(headerData.length - 1 - this.formulaColumns);
+    this.lastColumn = this.columnLetterFromIndex(headerData.length - 1);
   }
   columnIndex(columnName) {
     let index = this.headerData[0].indexOf(columnName);
@@ -453,6 +452,9 @@ class Tester {
   loadAt(startRowNum, sheetName, rowCount, iter) {
     iter.getNextRow(); // Skip header.
     let sheet = new SheetClass(sheetName);
+    if (startRowNum === 2) {
+      sheet.clear();
+    }
     while (rowCount--) {
       let rowData = iter.getNextRow();
       this.testDataSheet.removeEmptyCells(sheet, rowData);
