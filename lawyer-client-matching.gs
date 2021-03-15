@@ -14,17 +14,14 @@ function onEdit(e) {
         const lastRow = range.getLastRow();
         const confirmationsRaw = new SheetClass('Confirmations Raw');
         const id = confirmationsRaw.getRowData(lastRow)[0][confirmationsRaw.columnIndex('Case')];
-        const response = confirmationsRaw.getRowData(lastRow)[0][confirmationsRaw.columnIndex('Do you accept the case?')];
-        if (response === 'Yes, I am available and have no conflict') {
-          const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
-          const rowNumber = awaitingConfirmation.lookupRowNumber('Attorney Name - Client Name', id) + 1;
-          if (rowNumber > 0) {
-            awaitingConfirmation.sheet.deleteRow(rowNumber);
-          }
+        const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
+        const rowNumber = awaitingConfirmation.lookupRowNumber('Attorney Name - Client Name', id) + 1;
+        if (rowNumber > 0) {
+          awaitingConfirmation.sheet.deleteRow(rowNumber);
         }
       }
     } catch(e) {
-      showOKAlert('catch', e);
+      showOKAlert('onEdit catch', e);
     }
 }
 
