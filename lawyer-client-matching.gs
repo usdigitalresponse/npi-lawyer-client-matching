@@ -85,6 +85,14 @@ class SheetClass {
     }
     return index;
   }
+  columnName(columnIndex) {
+    if (columnIndex >= this.headerData[0].length) {
+      let msg = 'Column index too big: "' + columnIndex + '" in sheet: "' + this.name + '"?';
+      showAlert('Error', msg);
+      throw msg;
+    }
+    return this.headerData[0][columnIndex];
+  }
   getRowCount() {
     let values = this.sheet.getRange("A1:A").getValues();
     return values.filter(String).length;
@@ -470,30 +478,39 @@ class Tester {
     let sheet = new SheetClass(sheetName);
     this.loadAt(sheet.getRowCount() + 1, sheetName, rowCount, iter);
   }
-  compareArrays(expected, actual) {
+  compareArrays(sheet, expected, actual) {
     if (expected.length != actual.length) {
       console.log('Expected length: ' + expected.length + ' not equal actual: ' + actual.length);
       return;
     }
     for (let i = 0; i < expected.length; i++) {
-        if (expected[i] !== actual[i]) {
-          console.log('Expected value: ' + expected[i] + ' not equal actual: ' + actual[i]);
+      let columnName = sheet.columnName(i); 
+      if (columnName !== 'Timestamp') {
+        if (expected[i].toString() !== actual[i].toString()) {
+          console.log('Expected value: ');
+          console.log('"' + expected[i] + '"');
+          console.log('is not equal to actual: ')
+          console.log('"'+ actual[i] + '"');
           return;   
         }           
+      }
     }
   }
   verify(sheetName, rowCount, iter) {
+    iter.getNextRow(); // Skip header.
     let sheet = new SheetClass(sheetName);
-    if (rowCount !== sheet.getRowCount()) {
+    if (rowCount !== sheet.getRowCount() - 1) {
       console.log('Sheet: ' + sheetName + 'Expected row count: ' + rowCount + ' not equal actual: ' + sheet.getRowCount());
     } else {
       let rowNum = 2;
       while (rowCount--) {
         let expected = iter.getNextRow();
+        this.testDataSheet.removeEmptyCells(sheet, expected)
         let actual = sheet.getRowData(rowNum++);
-        this.compareArrays(expected, actual)
+        this.compareArrays(sheet, expected, actual[0])
       }
     }
+    console.log('Verified sheet named: "' + sheetName + '"');
   }
   runTests() {
     if (this.testDataSheet) {
