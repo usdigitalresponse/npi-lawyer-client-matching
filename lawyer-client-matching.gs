@@ -15,7 +15,7 @@ function onEdit(e) {
         const confirmationsRaw = new SheetClass('Confirmations Raw');
         const id = confirmationsRaw.getRowData(lastRow)[0][confirmationsRaw.columnIndex('Case')];
         const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
-        const rowNumber = awaitingConfirmation.lookupRowNumber('Attorney Name - Client Name', id) + 1;
+        const rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', id) + 1;
         if (rowNumber > 0) {
           awaitingConfirmation.sheet.deleteRow(rowNumber);
         }
@@ -131,7 +131,7 @@ class SheetClass {
     let columnIdx = this.columnIndex(sortColumn) + 1;
     range.sort({column: columnIdx, ascending: ascendingVal});
   }
-  lookupRowNumber(columnName, keyValue) { // TODO: rowIndex, not number
+  lookupRowIndex(columnName, keyValue) { // (0-based) 
     let columnLetter = this.columnLetterFromName(columnName);
     let values = this.sheet.getRange(columnLetter + '1:' + columnLetter).getValues();
     let i = 0;
@@ -237,10 +237,6 @@ class TheApp {
     return indexArray;
   }
   cleanUpAvailabilities(availabilities, attorneys) {
-    // TODO: remove rows where this is not: 'Yes, I am available and have no conflict'
-    // TODO because this may not happen much.
-    // const response = confirmationsRaw.getRowData(lastRow)[0][confirmationsRaw.columnIndex('Do you accept the case?')];
-
     availabilities.sortSheet('Timestamp', false);
     let lastAvailabilityIndex = availabilities.getRowCount();
     let availabilityColIndex = availabilities.columnIndex(this.availabilityColHeader);
@@ -326,7 +322,7 @@ class TheApp {
       }
       let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
       let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
-      if (emailedMatches.lookupRowNumber('Case Number', caseNumber) != -1) {
+      if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
         showAlert('Warning', 'Case: ' + caseNumber + " has already been emailed, skipping it.");
         continue;
       }
@@ -344,7 +340,7 @@ class TheApp {
         break;
       }
       let attorneyName = availabilityData[availabilities.columnIndex('Name')];
-      let attorneyData = attorneys.getRowData(attorneys.lookupRowNumber('Name', attorneyName))[0];
+      let attorneyData = attorneys.getRowData(attorneys.lookupRowIndex('Name', attorneyName))[0];
       let lawyerName = attorneyName.split(' ');
 
       let match = [];
@@ -393,7 +389,7 @@ class TheApp {
     let matchData;
     while (matchData = matchIterator.getNextRow()) {
       let newCaseNumber = matchData[matches.columnIndex('Case Number')];
-      if (emailedMatches.lookupRowNumber('Case Number', newCaseNumber) != -1) {
+      if (emailedMatches.lookupRowIndex('Case Number', newCaseNumber) != -1) {
         showAlert("Case: " + newCaseNumber + ' already emailed. Skipping it.');
         continue;
       }
