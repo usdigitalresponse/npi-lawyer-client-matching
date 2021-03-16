@@ -116,8 +116,13 @@ class SheetClass {
   }
   getRowData(rowNumber) {
     let rangeSpec = 'A' + rowNumber + ':' + this.lastColumn + rowNumber;
-    let range = this.sheet.getRange(rangeSpec);
-    return range.getValues();
+    try {
+      let range = this.sheet.getRange(rangeSpec);
+      return range.getValues();
+    } catch(err) {
+      console.log('Exception', 'Sheet: "' + this.name + '", range: ' + rangeSpec);
+      throw err;
+    }
   }
   setRowData(rowNumber, data) {
     let range = this.sheet.getRange('A' + rowNumber + ':' + this.lastColumn + rowNumber);
@@ -271,19 +276,23 @@ class TheApp {
       }
       let typeIndex;
       let attorneyRowNumber = attorneys.lookupRowIndex('Name', uuid);
-      let attorneyType = attorneys.getRowData(attorneyRowNumber)[0][attorneys.columnIndex('Type')];
-      availabilities.setCellData(availabilityIndex, 'Type', attorneyType);
-      switch (attorneyType) {
-        case 'Pro Bono Attorney':
-          typeIndex = 1; break;
-        case 'Law Student/Former Law Student':
-          typeIndex = 2; break;
-        case 'NPI Staff Attorney':
-          typeIndex = 3; break;
-        default:
-          typeIndex = 4;
+      if (attorneyRowNumber < 0) {
+        console.log('Error', 'No row for attorney in Staff List: "' + uuid + '". Skipping it.');
+      } else {
+        let attorneyType = attorneys.getRowData(attorneyRowNumber)[0][attorneys.columnIndex('Type')];
+        availabilities.setCellData(availabilityIndex, 'Type', attorneyType);
+        switch (attorneyType) {
+          case 'Pro Bono Attorney':
+            typeIndex = 1; break;
+          case 'Law Student/Former Law Student':
+            typeIndex = 2; break;
+          case 'NPI Staff Attorney':
+            typeIndex = 3; break;
+          default:
+            typeIndex = 4;
+        }
+        availabilities.setCellData(availabilityIndex, 'Type Rank', typeIndex);
       }
-      availabilities.setCellData(availabilityIndex, 'Type Rank', typeIndex);
     }
   }
   updateStaff(attorneys) {
