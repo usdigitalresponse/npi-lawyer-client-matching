@@ -6,18 +6,35 @@ function onOpen() {
   SpreadsheetApp.getActive().addMenu('ESP Actions', menuItems);
 }
 
+// Sort in reverse to delete from bottom up.
+function sortDescending(firstVal, secondVal) {
+  if (firstVal < secondVal) {
+    return 1;
+  }
+  if (firstVal > secondVal) {
+    return -1;
+  }
+  return 0;  
+}
+ 
 function onEdit(e) {
     try {
       const range = e.range;
       if (range.getSheet().getName() === 'Confirmations Raw') {
-        // TODO: Handle the rare case where more than one row is added at once.
-        const lastRow = range.getLastRow();
         const confirmationsRaw = new SheetClass('Confirmations Raw');
-        const id = confirmationsRaw.getRowData(lastRow)[0][confirmationsRaw.columnIndex('Case')];
         const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
-        const rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', id) + 1;
-        if (rowNumber > 0) {
-          awaitingConfirmation.sheet.deleteRow(rowNumber);
+        let rowsToDelete = [];
+        const lastRow = range.getLastRow();
+        for (let row = range.getFirstRow(); row++; row <= lastRow) {
+          const id = confirmationsRaw.getRowData(row)[0][confirmationsRaw.columnIndex('Case')];
+          const rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', id) + 1;
+          if (rowNumber > 0) {
+            rowsToDelete.push(rowNumber);
+          }
+        }
+        rowsToDelete.sort(sortDescending);
+        for (rn of rowsToDelete) {
+          awaitingConfirmation.sheet.deleteRow(rn);
         }
       }
     } catch(e) {
@@ -253,7 +270,7 @@ class TheApp {
         }
       }
       let typeIndex;
-      let attorneyRowNumber = attorneys.lookupRowNumber('Name', uuid);
+      let attorneyRowNumber = attorneys.lookupRowIndex('Name', uuid);
       let attorneyType = attorneys.getRowData(attorneyRowNumber)[0][attorneys.columnIndex('Type')];
       availabilities.setCellData(availabilityIndex, 'Type', attorneyType);
       switch (attorneyType) {
@@ -277,7 +294,7 @@ class TheApp {
     let newStaffData;
     while (newStaffData = newStaffIterator.getNextRow()) {
       let name = newStaffData[newStaffList.columnIndex('First Name')] + ' ' + newStaffData[newStaffList.columnIndex('Last Name')]
-      if (attorneys.lookupRowNumber('Name', name) == -1) {
+      if (attorneys.lookupRowIndex('Name', name) == -1) {
         let newRow = [];
         newRow[attorneys.columnIndex('Timestamp')] = d;
         newRow[attorneys.columnIndex('FirstName')] = newStaffData[newStaffList.columnIndex('First Name')];
