@@ -16,30 +16,31 @@ function sortDescending(firstVal, secondVal) {
   }
   return 0;  
 }
- 
+
 function onEdit(e) {
-    try {
-      const range = e.range;
-      if (range.getSheet().getName() === 'Confirmations Raw') {
-        const confirmationsRaw = new SheetClass('Confirmations Raw');
-        const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
-        let rowsToDelete = [];
-        const lastRow = range.getLastRow();
-        for (let row = range.getFirstRow(); row++; row <= lastRow) {
-          const id = confirmationsRaw.getRowData(row)[0][confirmationsRaw.columnIndex('Case')];
-          const rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', id) + 1;
-          if (rowNumber > 0) {
-            rowsToDelete.push(rowNumber);
-          }
-        }
-        rowsToDelete.sort(sortDescending);
-        for (rn of rowsToDelete) {
-          awaitingConfirmation.sheet.deleteRow(rn);
+  try {
+    const range = e.range;
+    if (range.getSheet().getName() === 'Confirmations Raw') {
+      const confirmationsRaw = new SheetClass('Confirmations Raw');
+      const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
+      let rowsToDelete = [];
+      const lastRow = range.getLastRow();
+      const firstRow = lastRow - range.getHeight() + 1;
+      for (let row = firstRow; row <= lastRow; row++) {
+        const id = confirmationsRaw.getRowData(row)[0][confirmationsRaw.columnIndex('Case')];
+        const rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', id) + 1;
+        if (rowNumber > 0) {
+          rowsToDelete.push(rowNumber);
         }
       }
-    } catch(e) {
-      showOKAlert('onEdit catch', e);
+      rowsToDelete.sort(sortDescending);
+      for (rn of rowsToDelete) {
+        awaitingConfirmation.sheet.deleteRow(rn);
+      }
     }
+  } catch(e) {
+    showOKAlert('onEdit catch', e);
+  }
 }
 
 function showOKAlert(header, body) {
