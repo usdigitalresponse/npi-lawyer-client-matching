@@ -275,11 +275,11 @@ class TheApp {
         }
       }
       let typeIndex;
-      let attorneyRowNumber = attorneys.lookupRowIndex('Name', uuid);
-      if (attorneyRowNumber < 0) {
+      let attorneyRowIndex = attorneys.lookupRowIndex('Name', uuid);
+      if (attorneyRowIndex < 0) {
         console.log('Error', 'No row for attorney in Staff List: "' + uuid + '". Skipping it.');
       } else {
-        let attorneyType = attorneys.getRowData(attorneyRowNumber)[0][attorneys.columnIndex('Type')];
+        let attorneyType = attorneys.getRowData(attorneyRowIndex + 1)[0][attorneys.columnIndex('Type')];
         availabilities.setCellData(availabilityIndex, 'Type', attorneyType);
         switch (attorneyType) {
           case 'Pro Bono Attorney':
@@ -366,7 +366,7 @@ class TheApp {
         break;
       }
       let attorneyName = availabilityData[availabilities.columnIndex('Name')];
-      let attorneyData = attorneys.getRowData(attorneys.lookupRowIndex('Name', attorneyName))[0];
+      let attorneyData = attorneys.getRowData(attorneys.lookupRowIndex('Name', attorneyName) + 1)[0];
       let lawyerName = attorneyName.split(' ');
 
       let match = [];
