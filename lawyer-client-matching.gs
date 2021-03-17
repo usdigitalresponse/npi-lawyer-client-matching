@@ -87,9 +87,8 @@ class SheetClass {
     let headerData = headerRange.getValues()[0];
     this.removeEmptyCells(headerData);
     if (headerData.length === maxColumns) {
-      showAlert('Warning',
-                  'Sheet: "' + this.name + '" may have more than ' + maxColumns +
-                    ' columns. Ignoring columns after: ' + maxColumns + '.')
+      logger.logAndAlert('Warning', 'Sheet: "' + this.name + '" may have more than ' + maxColumns +
+                    ' columns. Ignoring columns after: ' + maxColumns + '.');
     }
     this.headerData = headerData;
     this.lastColumn = this.columnLetterFromIndex(headerData.length - 1);
@@ -98,7 +97,7 @@ class SheetClass {
     let index = this.headerData[0].indexOf(columnName);
     if (index < 0) {
       let msg = 'Unknown column named: "' + columnName + '" in sheet: "' + this.name + '"?';
-      showAlert('Error', msg);
+      logger.logAndAlert('Error', msg);
       throw msg;
     }
     return index;
@@ -106,7 +105,7 @@ class SheetClass {
   columnName(columnIndex) {
     if (columnIndex >= this.headerData[0].length) {
       let msg = 'Column index too big: "' + columnIndex + '" in sheet: "' + this.name + '"?';
-      showAlert('Error', msg);
+      logger.logAndAlert('Error', msg);
       throw msg;
     }
     return this.headerData[0][columnIndex];
@@ -121,7 +120,7 @@ class SheetClass {
       let range = this.sheet.getRange(rangeSpec);
       return range.getValues();
     } catch(err) {
-      console.log('Exception', 'Sheet: "' + this.name + '", range: ' + rangeSpec);
+      logger.writeLogLine(['Exception', 'Sheet: "' + this.name + '", range: ' + rangeSpec]);
       throw err;
     }
   }
@@ -174,12 +173,6 @@ class SheetClass {
       range.clear();
     }
   }
-  log(data) {
-    let d = new Date();
-    data.unshift(d);
-    this.sheet.appendRow(data);
-    console.log(data);
-  }
   cloneSheet(sourceId, sourceSheetName) {
     let sourceWorkbook = SpreadsheetApp.openById(sourceId);
     let sourceSheet = sourceWorkbook.getSheetByName(sourceSheetName);
@@ -219,8 +212,64 @@ class SheetRowIterator {
   }
 }
 
+// Google Javascript isn't ES6,so no support for 'super' keyword. Thus the 'has-a' relationship. :(
+class BaseSheetClass {
+  constructor(name) {
+    this.subSheet = new SheetClass(name);
+    this.lastColumn = this.subSheet.columnLetterFromIndex(maxColumns);
+  }
+  getRowCount() {
+    return this.subSheet.getRowCount();
+  }
+  getRowData(rowNumber) {
+    let rangeSpec = 'A' + rowNumber + ':' + this.lastColumn + rowNumber;
+    let range = this.subSheet.sheet.getRange(rangeSpec);
+    let ret = range.getValues();
+    this.subSheet.removeEmptyCells(ret);
+    return ret;
+  }
+  removeEmptyCells(sheet, rowData) {
+    let i;
+    let lastCol = rowData.length - 1;
+    let len = sheet.headerData[0].length;
+    for (i = lastCol; i >= 0 && rowData.length > len; i--) {
+      if (rowData[i] === '') {
+        rowData.pop();
+      } else {
+        break;
+      }
+    }
+  }
+  appendRow(data) {
+    this.subSheet.sheet.appendRow(data);
+  }
+}
+
+class Logger {
+  constructor() {
+    try {
+      this.logSheet = new BaseSheetClass('Do NOT Edit - Log');
+    } catch(err) {
+      console.log('Logger constructor exception: ' + err);
+      this.logSheet = null;
+    }
+  }
+  writeLogLine(data) {
+    if (this.logSheet) {
+      let d = new Date();
+      data.unshift(d);
+      this.logSheet.appendRow(data);
+    }
+    console.log(data);
+  }
+  logAndAlert(title, msg) {
+    showAlert(title, msg);
+    logger.writeLogLine([title, msg]);
+  }
+}
+var logger = new Logger();
+
 var clients = new SheetClass('Clients Raw');
-var logSheet = new SheetClass('Do NOT Edit - Log');
 var lineSep = String.fromCharCode(10);
 
 function compareByCourtDate(firstElement, secondElement) {
@@ -278,7 +327,7 @@ class TheApp {
       let typeIndex;
       let attorneyRowIndex = attorneys.lookupRowIndex('Name', uuid);
       if (attorneyRowIndex < 0) {
-        console.log('Error', 'No row for attorney in Staff List: "' + uuid + '". Skipping it.');
+        logger.writeLogLine(['Warning', 'No row for attorney in Staff List: "' + uuid + '". Skipping it.']);
       } else {
         let attorneyType = attorneys.getRowData(attorneyRowIndex + 1)[0][attorneys.columnIndex('Type')];
         availabilities.setCellData(availabilityIndex, 'Type', attorneyType);
@@ -322,7 +371,8 @@ class TheApp {
   doMatching() {
     let sortedClientArray = this.buildSortedClientArray(clients);
     if (sortedClientArray.length === 0) {
-      showAlert('Warning', 'No clients found with "Clerk Confirmation" set to "Yes" with a blank "Match Status".');
+      let msg = 'No clients found with "Clerk Confirmation" set to "Yes" with a blank "Match Status".';
+      logger.logAndAlert('Warning', msg);
       return;
     }
     let availabilities = new SheetClass('Ranked Availability');
@@ -350,7 +400,8 @@ class TheApp {
       let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
       let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
       if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
-        showAlert('Warning', 'Case: ' + caseNumber + " has already been emailed, skipping it.");
+        let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
+        logger.logAndAlert('Warning', msg);
         continue;
       }
       let availabilityData = availabilities.getRowData(availabilityIndex)[0];
@@ -398,7 +449,7 @@ class TheApp {
     nextMatchIndex -= 2;
     let leftOver = sortedClientArray.length - nextMatchIndex;
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';
-    logSheet.log([msg]);
+    logger.writeLogLine([msg]);
   }
   performMatching() {
     clients.cloneSheet('1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo', 'Client List')
@@ -417,7 +468,8 @@ class TheApp {
     while (matchData = matchIterator.getNextRow()) {
       let newCaseNumber = matchData[matches.columnIndex('Case Number')];
       if (emailedMatches.lookupRowIndex('Case Number', newCaseNumber) != -1) {
-        showAlert("Case: " + newCaseNumber + ' already emailed. Skipping it.');
+        let msg = 'Case: ' + newCaseNumber + ' already emailed. Skipping it.';
+        logger.logAndAlert('Warning', msg);
         continue;
       }
       matchData[matches.columnIndex('Timestamp')] = d;
@@ -437,7 +489,7 @@ class TheApp {
       nextEmailMatchIndex++;
       newCaseCount++;
     }
-    showAlert('Info', 'Emailed ' + newCaseCount + ' new cases.');
+    logger.logAndAlert('Info', 'Emailed ' + newCaseCount + ' new cases.');
   }
 }
 
@@ -447,35 +499,6 @@ function emailLawyers() { theApp.emailLawyers(); }
 function doMatching() { theApp.doMatching(); }
 
 // ----------------------- code for automated testing
-// Google Javascript isn't ES6,so no support for 'super' keyword. Thus the 'has-a' relationship. :(
-class BaseSheetClass {
-  constructor(name) {
-    this.subSheet = new SheetClass(name);
-    this.lastColumn = this.subSheet.columnLetterFromIndex(maxColumns);
-  }
-  getRowCount() {
-    return this.subSheet.getRowCount();
-  }
-  getRowData(rowNumber) {
-    let rangeSpec = 'A' + rowNumber + ':' + this.lastColumn + rowNumber;
-    let range = this.subSheet.sheet.getRange(rangeSpec);
-    let ret = range.getValues();
-    this.subSheet.removeEmptyCells(ret);
-    return ret;
-  }
-  removeEmptyCells(sheet, rowData) {
-    let i;
-    let lastCol = rowData.length - 1;
-    let len = sheet.headerData[0].length;
-    for (i = lastCol; i >= 0 && rowData.length > len; i--) {
-      if (rowData[i] === '') {
-        rowData.pop();
-      } else {
-        break;
-      }
-    }
-  }
-}
 class Tester {
   constructor() {
     try {
