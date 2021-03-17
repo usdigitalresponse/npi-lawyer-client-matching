@@ -373,7 +373,8 @@ class TheApp {
   doMatching() {
     let sortedClientArray = this.buildSortedClientArray(clients);
     if (sortedClientArray.length === 0) {
-      let msg = 'No clients found with "Clerk Confirmation" set to "Yes" with a blank "Match Status".';
+      let msg = 'No clients found with "Clerk Confirmation" set to "Yes", ' +
+                'blank "Match Status" and "Program Eligibility" set to "Verified eligible"';
       logger.logAndAlert('Warning', msg);
       return;
     }
