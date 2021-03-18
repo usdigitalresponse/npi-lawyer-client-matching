@@ -17,30 +17,95 @@ function sortDescending(firstVal, secondVal) {
   return 0;  
 }
 
-function onEdit(e) {
-  try {
-    const range = e.range;
-    if (range.getSheet().getName() === 'Confirmations Raw') {
-      const confirmationsRaw = new SheetClass('Confirmations Raw');
-      const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
-      let rowsToDelete = [];
-      const lastRow = range.getLastRow();
-      const firstRow = lastRow - range.getHeight() + 1;
-      for (let row = firstRow; row <= lastRow; row++) {
-        const id = confirmationsRaw.getRowData(row)[0][confirmationsRaw.columnIndex('Case')];
-        const rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', id) + 1;
-        if (rowNumber > 0) {
-          rowsToDelete.push(rowNumber);
-        }
-      }
-      rowsToDelete.sort(sortDescending);
-      for (rn of rowsToDelete) {
-        awaitingConfirmation.sheet.deleteRow(rn);
+class OnEditHandler {
+  deleteAwaiting(confirmationsRaw, range) {
+    const awaitingConfirmation = new SheetClass('Awaiting Confirmation');
+    let rowsToDelete = [];
+    const lastRow = range.getLastRow();
+    const firstRow = lastRow - range.getHeight() + 1;
+    for (let row = firstRow; row <= lastRow; row++) {
+      const id = confirmationsRaw.getRowData(row)[0][confirmationsRaw.columnIndex('Case')];
+      const rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', id) + 1;
+      if (rowNumber > 0) {
+        rowsToDelete.push(rowNumber);
       }
     }
-  } catch(e) {
-    showOKAlert('onEdit catch', e);
+    rowsToDelete.sort(sortDescending);
+    for (let rn of rowsToDelete) {
+      awaitingConfirmation.sheet.deleteRow(rn);
+    }
   }
+  findEmailedMatch(emailedMatches, attorneyClientId) {
+    let iter = new SheetRowIterator(emailedMatches);
+    let rowData;
+    while (rowData = iter.getNextRow()) {
+      let otherId = rowData[emailedMatches.columnIndex('Lawyer First Name')] + ' ' +
+                    rowData[emailedMatches.columnIndex('Lawyer Last Name')] + ' - ' +
+                    rowData[emailedMatches.columnIndex('Client First Name')] + ' ' +
+                    rowData[emailedMatches.columnIndex('Client Last Name')];
+      if (otherId === attorneyClientId) {
+        return iter.nextIndex - 1;
+      }
+    }
+    let msg = attorneyClientId + ' no found in "Emailed Matches"';
+    logger.logAndAlert('Error', msg);
+    throw msg;
+  }
+  updateConfirmed(confirmationsRaw, range) {
+    let emailedMatches = new SheetClass('Emailed Matches');
+    let confirmedMatches = new SheetClass('Confirmed Matches');
+    const colNames = [
+      'Timestamp', 'Lawyer First Name', 'Lawyer Last Name',
+      'Lawyer Email', 'Client First Name', 'Client Last Name', 'Client Email', 'Client UUID',
+      'Client Folder', 'Client Phone Number',	'Client Address',	'Landlord Name',	'Landlord Email',
+      'Landlord Phone Number', 'Landlord Address', 'Case Number', 'Next Court Date', 'Match Status'
+    ]
+    let rowNum = confirmedMatches.getRowCount() + 1;
+    const lastRow = range.getLastRow();
+    const firstRow = lastRow - range.getHeight() + 1;
+    for (let row = firstRow; row <= lastRow; row++) {
+      const rawRow = confirmationsRaw.getRowData(row)[0]; 
+      const response = rawRow[confirmationsRaw.columnIndex('Do you accept the case?')];
+      if (response === 'Yes, I am available and have no conflict') {
+        const id = rawRow[confirmationsRaw.columnIndex('Case')];
+        const rowNumber = this.findEmailedMatch(emailedMatches, id);
+        let sourceData = emailedMatches.getRowData(rowNumber);
+        let targetData = [];
+        for (let colName of colNames) {
+          targetData[confirmedMatches.columnIndex(colName)] = sourceData[0][emailedMatches.columnIndex(colName)];
+        }
+        targetData[confirmedMatches.columnIndex('Confimed/Denied Timestamp')] = (new Date()).toString();
+        targetData[confirmedMatches.columnIndex('Attorney Name - Client Name')] = 'n/a';
+        targetData[confirmedMatches.columnIndex('Do you accept the case?')] = 'Yes, I am available and have no conflict';
+        confirmedMatches.setRowData(rowNum++, [targetData]);
+      }
+    }
+  }
+  doEdit(range) {
+    const confirmationsRaw = new SheetClass('Confirmations Raw');
+    this.deleteAwaiting(confirmationsRaw, range);
+    this.updateConfirmed(confirmationsRaw, range);
+  }
+  handleEdit(e) {
+    try {
+      const range = e.range;
+      if (range.getSheet().getName() === 'Confirmations Raw') {
+        this.doEdit(range);
+      }
+    } catch(e) {
+      console.log('onEdit catch: ' + e);
+      showOKAlert('onEdit catch', e);
+    }
+  }
+  doTest() {
+    const confirmationsRaw = new SheetClass('Confirmations Raw');
+    this.doEdit(confirmationsRaw.sheet.getRange('A6:C7'));
+  }
+}
+onEditHandler = new OnEditHandler();
+
+function onEdit(e) {
+  onEditHandler.handle(e);
 }
 
 function showOKAlert(header, body) {
@@ -500,4 +565,3 @@ theApp = new TheApp();
 function performMatching() { theApp.performMatching(); }
 function emailLawyers() { theApp.emailLawyers(); }
 function doMatching() { theApp.doMatching(); }
-
