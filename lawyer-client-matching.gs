@@ -99,13 +99,13 @@ class OnEditHandler {
   }
   doTest() {
     const confirmationsRaw = new SheetClass('Confirmations Raw');
-    this.doEdit(confirmationsRaw.sheet.getRange('A6:C7'));
+    this.doEdit(confirmationsRaw.sheet.getRange('A2:C2'));
   }
 }
-onEditHandler = new OnEditHandler();
+var onEditHandler = new OnEditHandler();
 
 function onEdit(e) {
-  onEditHandler.handle(e);
+  onEditHandler.handleEdit(e);
 }
 
 function showOKAlert(header, body) {
@@ -533,7 +533,7 @@ class TheApp {
     logger.writeLogLine([msg]);
   }
   performMatching() {
-    clients.cloneSheet('1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo', 'Client List')
+    clients.cloneSheet('1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo', 'Client List');
     doMatching();
   }
   emailLawyers() {
