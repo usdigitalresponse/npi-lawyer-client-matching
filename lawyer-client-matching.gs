@@ -176,8 +176,16 @@ class SheetClass {
     return this.headerData[0][columnIndex];
   }
   getRowCount() {
-    let values = this.sheet.getRange("A1:A").getValues();
-    return values.filter(String).length;
+    let count = 0;
+    // If this turns out to be a performance problem down the road,
+    // use the length of a 'key' column instead.
+    for (let colIndex = 0; colIndex < this.headerData[0].length; colIndex++) {
+      let colLetter = this.columnLetterFromIndex(colIndex);
+      let rangeSpec = colLetter + '1:' + colLetter;
+      let values = this.sheet.getRange(rangeSpec).getValues();
+      count = Math.max(count, values.filter(String).length);
+    }
+    return count;
   }
   getRowData(rowNumber) {
     let rangeSpec = 'A' + rowNumber + ':' + this.lastColumn + rowNumber;
@@ -451,7 +459,7 @@ class TheApp {
     this.cleanUpAvailabilities(availabilities, attorneys);
     availabilities.sortSheet('Type Rank', true);
 //    this.updateStaff(attorneys); // Until the Google Form for adding attorneys is enabled.
-    attorneys.sortSheet('FirstName', true);
+//    attorneys.sortSheet('FirstName', true); // Until 'length of empty column' bug is verified.
     let emailedMatches = new SheetClass('Emailed Matches');
     let matches = new SheetClass('Created Matches');
     matches.clear();
@@ -486,7 +494,12 @@ class TheApp {
         break;
       }
       let attorneyName = availabilityData[availabilities.columnIndex('Name')];
-      let attorneyData = attorneys.getRowData(attorneys.lookupRowIndex('Name', attorneyName) + 1)[0];
+      let rowIdx = attorneys.lookupRowIndex('Name', attorneyName);
+      if (rowIdx === -1) {
+        logger.logAndAlert('Warning', 'Unknown attorney name: "' + attorneyName + '". Skipping it.');
+        continue;
+      }
+      let attorneyData = attorneys.getRowData(rowIdx + 1)[0];
       let lawyerName = attorneyName.split(' ');
 
       let match = [];
