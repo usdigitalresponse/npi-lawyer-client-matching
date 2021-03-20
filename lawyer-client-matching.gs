@@ -468,6 +468,7 @@ class TheApp {
     let nextMatchIndex = 2;
     let availabilityIndex = 2;
     let d = new Date();
+    let errs = '';
     let clientIndex;
     for (clientIndex = 0; clientIndex < sortedClientArray.length; clientIndex++) {
       if (availabilityIndex > lastAvailabilitiesIndex) { // Check if no one available at all.
@@ -499,6 +500,13 @@ class TheApp {
         logger.logAndAlert('Warning', 'Unknown attorney name: "' + attorneyName + '". Skipping it.');
         continue;
       }
+      const cutOffDate = new Date(2020, 0, 1); // month is 0-indexed
+      let nextCourtDate = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
+      if (nextCourtDate < cutOffDate) {
+        errs += (clientData[clients.columnIndex('Case Number' + lineSep + 'auto')] + ', ');
+        continue;
+      }
+
       let attorneyData = attorneys.getRowData(rowIdx + 1)[0];
       let lawyerName = attorneyName.split(' ');
 
@@ -519,7 +527,7 @@ class TheApp {
       match[matches.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex('Landlord Phone' + lineSep + 'auto')];
       match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex('Landlord Address' + lineSep + 'auto')];
       match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
-      match[matches.columnIndex('Next Court Date')] = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
+      match[matches.columnIndex('Next Court Date')] = nextCourtDate;
       match[matches.columnIndex('Match Status')] = '';
       match[matches.columnIndex('Pending Timestamp')] = '';
       matches.setRowData(nextMatchIndex, [match]);
@@ -531,6 +539,9 @@ class TheApp {
     let leftOver = sortedClientArray.length - nextMatchIndex;
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';
     logger.logAndAlert('Info', msg);
+    if (errs.length > 0) {
+      logger.logAndAlert('Error: bad court dates for cases: ', errs);
+    }
   }
   performMatching() {
     clients.cloneSheet('1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo', 'Client List');
