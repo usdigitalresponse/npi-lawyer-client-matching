@@ -530,7 +530,7 @@ class TheApp {
     nextMatchIndex -= 2;
     let leftOver = sortedClientArray.length - nextMatchIndex;
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';
-    logger.writeLogLine([msg]);
+    logger.logAndAlert('Info', msg);
   }
   performMatching() {
     clients.cloneSheet('1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo', 'Client List');
