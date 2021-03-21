@@ -443,6 +443,79 @@ class TheApp {
       }
     }
   }
+  getAvailablityIndex(availabilityIndex, lastAvailabilitiesIndex, availabilities) {
+    if (availabilityIndex > lastAvailabilitiesIndex) { // Check if no one available at all.
+      return -1;
+    }
+    let availabilityData = availabilities.getRowData(availabilityIndex)[0];
+    let availabilityColIndex = availabilities.columnIndex(this.availabilityColHeader);
+    while (availabilityData[availabilityColIndex] <= 0) {
+      availabilityIndex++;
+      if (availabilityIndex > lastAvailabilitiesIndex) {
+        return -1;
+      }
+      availabilityData = availabilities.getRowData(availabilityIndex)[0];
+    };
+    return availabilityIndex;
+  }
+  clientCanMatch(clientIndex, sortedClientArray, emailedMatches, availabilities, availabilityData, attorneys, errs) {
+    let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
+    let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
+    if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
+      let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
+      logger.logAndAlert('Warning', msg);
+      return false;
+    }
+    let attorneyName = availabilityData[availabilities.columnIndex('Name')];
+    let rowIdx = attorneys.lookupRowIndex('Name', attorneyName);
+    if (rowIdx === -1) {
+      logger.logAndAlert('Warning', 'Unknown attorney name: "' + attorneyName + '". Skipping it.');
+      return false;
+    }
+    const cutOffDate = new Date(2020, 0, 1); // month is 0-indexed
+    let nextCourtDate = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
+    if (nextCourtDate < cutOffDate) {
+      errs += (clientData[clients.columnIndex('Case Number' + lineSep + 'auto')] + ', ');
+      return false;
+    }
+    return true;
+  }
+  createMatch(date, matches, clientData, attorneys, availabilityData, availabilities) {
+    let match = [];
+    let attorneyName = availabilityData[availabilities.columnIndex('Name')];
+    let rowIdx = attorneys.lookupRowIndex('Name', attorneyName);
+    let attorneyData = attorneys.getRowData(rowIdx + 1)[0];
+    let lawyerNames = attorneyName.split(' ');
+
+    match[matches.columnIndex('Timestamp')] = date;
+    match[matches.columnIndex('Lawyer First Name')] = lawyerNames[0];
+    match[matches.columnIndex('Lawyer Last Name')] = lawyerNames[1];
+    match[matches.columnIndex('Lawyer Email')] = attorneyData[attorneys.columnIndex('Email')];
+    match[matches.columnIndex('Client First Name')] = clientData[clients.columnIndex('First' + lineSep + 'auto')];
+    match[matches.columnIndex('Client Last Name')] = clientData[clients.columnIndex('Last' + lineSep + 'auto')];
+    match[matches.columnIndex('Client Email')] = clientData[clients.columnIndex('Email' + lineSep + 'auto')];
+    match[matches.columnIndex('Client UUID')] = clientData[clients.columnIndex('Unique ID' + lineSep + 'auto')];
+    match[matches.columnIndex('Client Folder')] = clientData[clients.columnIndex('Folder' + lineSep + 'auto')];
+    match[matches.columnIndex('Client Phone Number')] = clientData[clients.columnIndex('Phone' + lineSep + 'auto')];
+    match[matches.columnIndex('Client Address')] = clientData[clients.columnIndex('Address'  + lineSep + 'auto')];
+    match[matches.columnIndex('Landlord Name')] = clientData[clients.columnIndex('Landlord Name'  + lineSep + 'auto')];
+    match[matches.columnIndex('Landlord Email')] = clientData[clients.columnIndex('Landlord Email'  + lineSep + 'auto')];
+    match[matches.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex('Landlord Phone' + lineSep + 'auto')];
+    match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex('Landlord Address' + lineSep + 'auto')];
+    match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
+    match[matches.columnIndex('Next Court Date')] = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
+    match[matches.columnIndex('Match Status')] = '';
+    match[matches.columnIndex('Pending Timestamp')] = '';
+    return match;
+  }
+  setupAvailabilities(attorneys) {
+    let availabilities = new SheetClass('Ranked Availability');
+    let rawAvailabilities = new SheetClass('Availability Raw');
+    availabilities.copyFrom('Availability Raw', 'A2:C' + rawAvailabilities.getRowCount());
+    this.cleanUpAvailabilities(availabilities, attorneys);
+    availabilities.sortSheet('Type Rank', true);
+    return availabilities;
+  }
   doMatching() {
     let sortedClientArray = this.buildSortedClientArray(clients);
     if (sortedClientArray.length === 0) {
@@ -451,13 +524,8 @@ class TheApp {
       logger.logAndAlert('Warning', msg);
       return;
     }
-    let availabilities = new SheetClass('Ranked Availability');
-    let rawAvailabilities = new SheetClass('Availability Raw');
     let attorneys = new SheetClass('Staff List');
-
-    availabilities.copyFrom('Availability Raw', 'A2:C' + rawAvailabilities.getRowCount());
-    this.cleanUpAvailabilities(availabilities, attorneys);
-    availabilities.sortSheet('Type Rank', true);
+    let availabilities = this.setupAvailabilities(attorneys);
 //    this.updateStaff(attorneys); // Until the Google Form for adding attorneys is enabled.
 //    attorneys.sortSheet('FirstName', true); // Until 'length of empty column' bug is verified.
     let emailedMatches = new SheetClass('Emailed Matches');
@@ -471,69 +539,20 @@ class TheApp {
     let errs = '';
     let clientIndex;
     for (clientIndex = 0; clientIndex < sortedClientArray.length; clientIndex++) {
-      if (availabilityIndex > lastAvailabilitiesIndex) { // Check if no one available at all.
+      availabilityIndex = this.getAvailablityIndex(availabilityIndex, lastAvailabilitiesIndex, availabilities);
+      if (availabilityIndex < 0) {
         break;
-      }
-      let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
-      let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
-      if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
-        let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
-        logger.logAndAlert('Warning', msg);
-        continue;
       }
       let availabilityData = availabilities.getRowData(availabilityIndex)[0];
-      let availabilityColIndex = availabilities.columnIndex(this.availabilityColHeader);
-      while (availabilityData[availabilityColIndex] <= 0) {
-        availabilityIndex++;
-        if (availabilityIndex > lastAvailabilitiesIndex) {
-          availabilityData = null;
-          break;
-        }
-        availabilityData = availabilities.getRowData(availabilityIndex)[0];
-      };
-      if (!availabilityData) {
-        break;
+      if (this.clientCanMatch(clientIndex, sortedClientArray, emailedMatches,
+                              availabilities, availabilityData, attorneys, errs)) {
+        let clientData = clients.getRowData(clientIndex);
+        let match = this.createMatch(d, matches, clientData, attorneys, availabilityData, availabilities);
+        matches.setRowData(nextMatchIndex, [match]);
+        nextMatchIndex++;
+        let availabilityColIndex = availabilities.columnIndex(this.availabilityColHeader);
+        availabilities.setCellData(availabilityIndex, this.availabilityColHeader, --availabilityData[availabilityColIndex]);
       }
-      let attorneyName = availabilityData[availabilities.columnIndex('Name')];
-      let rowIdx = attorneys.lookupRowIndex('Name', attorneyName);
-      if (rowIdx === -1) {
-        logger.logAndAlert('Warning', 'Unknown attorney name: "' + attorneyName + '". Skipping it.');
-        continue;
-      }
-      const cutOffDate = new Date(2020, 0, 1); // month is 0-indexed
-      let nextCourtDate = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
-      if (nextCourtDate < cutOffDate) {
-        errs += (clientData[clients.columnIndex('Case Number' + lineSep + 'auto')] + ', ');
-        continue;
-      }
-
-      let attorneyData = attorneys.getRowData(rowIdx + 1)[0];
-      let lawyerName = attorneyName.split(' ');
-
-      let match = [];
-      match[matches.columnIndex('Timestamp')] = d;
-      match[matches.columnIndex('Lawyer First Name')] = lawyerName[0];
-      match[matches.columnIndex('Lawyer Last Name')] = lawyerName[1];
-      match[matches.columnIndex('Lawyer Email')] = attorneyData[attorneys.columnIndex('Email')];
-      match[matches.columnIndex('Client First Name')] = clientData[clients.columnIndex('First' + lineSep + 'auto')];
-      match[matches.columnIndex('Client Last Name')] = clientData[clients.columnIndex('Last' + lineSep + 'auto')];
-      match[matches.columnIndex('Client Email')] = clientData[clients.columnIndex('Email' + lineSep + 'auto')];
-      match[matches.columnIndex('Client UUID')] = clientData[clients.columnIndex('Unique ID' + lineSep + 'auto')];
-      match[matches.columnIndex('Client Folder')] = clientData[clients.columnIndex('Folder' + lineSep + 'auto')];
-      match[matches.columnIndex('Client Phone Number')] = clientData[clients.columnIndex('Phone' + lineSep + 'auto')];
-      match[matches.columnIndex('Client Address')] = clientData[clients.columnIndex('Address'  + lineSep + 'auto')];
-      match[matches.columnIndex('Landlord Name')] = clientData[clients.columnIndex('Landlord Name'  + lineSep + 'auto')];
-      match[matches.columnIndex('Landlord Email')] = clientData[clients.columnIndex('Landlord Email'  + lineSep + 'auto')];
-      match[matches.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex('Landlord Phone' + lineSep + 'auto')];
-      match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex('Landlord Address' + lineSep + 'auto')];
-      match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
-      match[matches.columnIndex('Next Court Date')] = nextCourtDate;
-      match[matches.columnIndex('Match Status')] = '';
-      match[matches.columnIndex('Pending Timestamp')] = '';
-      matches.setRowData(nextMatchIndex, [match]);
-
-      nextMatchIndex++;
-      availabilities.setCellData(availabilityIndex, this.availabilityColHeader, --availabilityData[availabilityColIndex]);
     }
     nextMatchIndex -= 2;
     let leftOver = sortedClientArray.length - nextMatchIndex;
