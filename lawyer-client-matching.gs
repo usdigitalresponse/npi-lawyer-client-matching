@@ -548,7 +548,7 @@ class TheApp {
       let availabilityData = availabilities.getRowData(availabilityIndex)[0];
       if (this.clientCanMatch(clientIndex, sortedClientArray, emailedMatches,
                               availabilities, availabilityData, attorneys, errs)) {
-        let clientData = clients.getRowData(clientIndex);
+        let clientData = clients.getRowData(clientIndex)[0];
         let match = this.createMatch(d, matches, clientData, attorneys, availabilityData, availabilities);
         matches.setRowData(nextMatchIndex, [match]);
         nextMatchIndex++;
