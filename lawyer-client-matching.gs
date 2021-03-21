@@ -369,12 +369,14 @@ class TheApp {
     let confirmationIndex = clients.columnIndex('Clerk Confirmation' + lineSep + 'manual');
     let matchStatusIndex = clients.columnIndex('Match Status' + lineSep + ' auto - Pending, Confirmed, Denied' + lineSep + 'manual for Reassigned');
     let programEligibilityIndex = clients.columnIndex('Program Eligibility ' + lineSep + 'auto');
+    let applicationStatusIndex = clients.columnIndex('Rental Assistance Application Status' + lineSep + 'auto & manual');
     let lastClientIndex = clients.getRowCount();
     let clientIndex;
     for (clientIndex = 2; clientIndex <= lastClientIndex; clientIndex++) {
       let clientData = clients.getRowData(clientIndex)[0];
-      if (clientData[confirmationIndex] &&
-          clientData[programEligibilityIndex] === 'Verified eligible') {
+      if (clientData[confirmationIndex] === 'Yes' &&
+          clientData[programEligibilityIndex] === 'Verified eligible' &&
+          clientData[applicationStatusIndex] === 'Rental application accepted as complete') {
         if (!clientData[matchStatusIndex]) {
           indexArray.push(clientIndex);
         }
