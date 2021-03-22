@@ -345,12 +345,21 @@ var logger = new Logger();
 var clients = new SheetClass('Clients Raw');
 var lineSep = String.fromCharCode(10);
 
+const UNKNOWN_COURT_DATE = 0;
 function compareByCourtDate(firstElement, secondElement) {
   let courtDateIndex = clients.columnIndex('Court Date' + lineSep + 'auto');
   let firstRow = clients.getRowData(firstElement);
   let secondRow = clients.getRowData(secondElement);
   let firstDate = firstRow[0][courtDateIndex];
   let secondDate = secondRow[0][courtDateIndex];
+
+  const MAX_DATE = new Date(8640000000000000);
+  if (firstDate === UNKNOWN_COURT_DATE) {
+    firstDate = MAX_DATE;
+  }
+  if (secondDate === UNKNOWN_COURT_DATE) {
+    secondDate = MAX_DATE;
+  }
   if (firstDate < secondDate) {
     return -1;
   }
@@ -370,11 +379,16 @@ class TheApp {
     let matchStatusIndex = clients.columnIndex('Match Status' + lineSep + ' auto - Pending, Confirmed, Denied' + lineSep + 'manual for Reassigned');
     let programEligibilityIndex = clients.columnIndex('Program Eligibility ' + lineSep + 'auto');
     let applicationStatusIndex = clients.columnIndex('Rental Assistance Application Status' + lineSep + 'auto & manual');
+    let courtDateIndex = clients.columnIndex('Court Date' + lineSep + 'auto');
+    let today = new Date();
     let lastClientIndex = clients.getRowCount();
     let clientIndex;
     for (clientIndex = 2; clientIndex <= lastClientIndex; clientIndex++) {
       let clientData = clients.getRowData(clientIndex)[0];
-      if (clientData[confirmationIndex] === 'Yes' &&
+      let nextCourtDate = clientData[courtDateIndex];
+      let dateOK = (nextCourtDate >= today || nextCourtDate === UNKNOWN_COURT_DATE);
+      if (dateOK &&
+          clientData[confirmationIndex] === 'Yes' &&
           clientData[programEligibilityIndex] === 'Verified eligible' &&
           clientData[applicationStatusIndex] === 'Rental application accepted as complete') {
         if (!clientData[matchStatusIndex]) {
@@ -460,7 +474,7 @@ class TheApp {
     };
     return availabilityIndex;
   }
-  clientCanMatch(clientIndex, sortedClientArray, emailedMatches, availabilities, availabilityData, attorneys, errs) {
+  clientCanMatch(clientIndex, sortedClientArray, emailedMatches, availabilities, availabilityData, attorneys) {
     let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
     let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
     if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
@@ -472,12 +486,6 @@ class TheApp {
     let rowIdx = attorneys.lookupRowIndex('Name', attorneyName);
     if (rowIdx === -1) {
       logger.logAndAlert('Warning', 'Unknown attorney name: "' + attorneyName + '". Skipping it.');
-      return false;
-    }
-    const cutOffDate = new Date(2020, 0, 1); // month is 0-indexed
-    let nextCourtDate = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
-    if (nextCourtDate < cutOffDate) {
-      errs += (clientData[clients.columnIndex('Case Number' + lineSep + 'auto')] + ', ');
       return false;
     }
     return true;
@@ -505,7 +513,11 @@ class TheApp {
     match[matches.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex('Landlord Phone' + lineSep + 'auto')];
     match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex('Landlord Address' + lineSep + 'auto')];
     match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
-    match[matches.columnIndex('Next Court Date')] = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
+    let nextCourtDate = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
+    if (nextCourtDate === UNKNOWN_COURT_DATE) {
+      nextCourtDate = 'Unknown';
+    }
+    match[matches.columnIndex('Next Court Date')] = nextCourtDate;
     match[matches.columnIndex('Match Status')] = '';
     match[matches.columnIndex('Pending Timestamp')] = '';
     return match;
@@ -538,7 +550,6 @@ class TheApp {
     let nextMatchIndex = 2;
     let availabilityIndex = 2;
     let d = new Date();
-    let errs = '';
     let clientIndex;
     for (clientIndex = 0; clientIndex < sortedClientArray.length; clientIndex++) {
       availabilityIndex = this.getAvailablityIndex(availabilityIndex, lastAvailabilitiesIndex, availabilities);
@@ -547,7 +558,7 @@ class TheApp {
       }
       let availabilityData = availabilities.getRowData(availabilityIndex)[0];
       if (this.clientCanMatch(clientIndex, sortedClientArray, emailedMatches,
-                              availabilities, availabilityData, attorneys, errs)) {
+                              availabilities, availabilityData, attorneys)) {
         let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
         let match = this.createMatch(d, matches, clientData, attorneys, availabilityData, availabilities);
         matches.setRowData(nextMatchIndex, [match]);
@@ -560,9 +571,6 @@ class TheApp {
     let leftOver = sortedClientArray.length - nextMatchIndex;
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';
     logger.logAndAlert('Info', msg);
-    if (errs.length > 0) {
-      logger.logAndAlert('Error: bad court dates for cases: ', errs);
-    }
   }
   performMatching() {
     clients.cloneSheet('1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo', 'Client List');
