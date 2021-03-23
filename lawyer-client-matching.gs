@@ -36,18 +36,24 @@ class OnEditHandler {
     }
   }
   findEmailedMatch(emailedMatches, attorneyClientId) {
+    let names = attorneyClientId.split(' - ');
+    let attorneyName = names[0];
+    let clientName = names[1];
     let iter = new SheetRowIterator(emailedMatches);
     let rowData;
     while (rowData = iter.getNextRow()) {
-      let otherId = rowData[emailedMatches.columnIndex('Lawyer First Name')] + ' ' +
-                    rowData[emailedMatches.columnIndex('Lawyer Last Name')] + ' - ' +
-                    rowData[emailedMatches.columnIndex('Client First Name')] + ' ' +
-                    rowData[emailedMatches.columnIndex('Client Last Name')];
-      if (otherId === attorneyClientId) {
+      // Unclear where extra spaces are coming from.
+      // This code introduces a slight possiblity for a mismatch if names are similar,
+      // but we have to live with it.
+      // Would be better (if ever possible) to use court case number for the key, which should be unique.
+      if (attorneyName.startsWith(rowData[emailedMatches.columnIndex('Lawyer First Name')]) &&
+          attorneyName.endsWith(rowData[emailedMatches.columnIndex('Lawyer Last Name')]) &&
+          clientName.startsWith(rowData[emailedMatches.columnIndex('Client First Name')]) &&
+          clientName.endsWith(rowData[emailedMatches.columnIndex('Client Last Name')])) {
         return iter.nextIndex - 1;
       }
     }
-    let msg = attorneyClientId + ' no found in "Emailed Matches"';
+    let msg = '"' + attorneyClientId + '" not found in "Emailed Matches"';
     logger.logAndAlert('Error', msg);
     throw msg;
   }
@@ -75,7 +81,7 @@ class OnEditHandler {
           targetData[confirmedMatches.columnIndex(colName)] = sourceData[0][emailedMatches.columnIndex(colName)];
         }
         targetData[confirmedMatches.columnIndex('Confimed/Denied Timestamp')] = (new Date()).toString();
-        targetData[confirmedMatches.columnIndex('Attorney Name - Client Name')] = 'n/a';
+        targetData[confirmedMatches.columnIndex('Attorney Name - Client Name')] = 'see other columns';
         targetData[confirmedMatches.columnIndex('Do you accept the case?')] = 'Yes, I am available and have no conflict';
         confirmedMatches.setRowData(rowNum++, [targetData]);
       }
@@ -99,7 +105,7 @@ class OnEditHandler {
   }
   doTest() {
     const confirmationsRaw = new SheetClass('Confirmations Raw');
-    this.doEdit(confirmationsRaw.sheet.getRange('A2:C2'));
+    this.doEdit(confirmationsRaw.sheet.getRange('A9:C9'));
   }
 }
 var onEditHandler = new OnEditHandler();
