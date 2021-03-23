@@ -161,7 +161,7 @@ class SheetClass {
   columnIndex(columnName) {
     let index = this.headerData[0].indexOf(columnName);
     if (index < 0) {
-      let msg = 'Unknown column named: "' + columnName + '" in sheet: "' + this.name + '"?';
+      let msg = 'No column named: "' + columnName + '" in sheet: "' + this.name + '"?';
       logger.logAndAlert('Error', msg);
       throw msg;
     }
@@ -236,7 +236,7 @@ class SheetClass {
       }
       i++;
     }
-    return -1; // throw '"' + keyValue + '" not found ' + ' in column: "' + columnName + '"';
+    return -1;
   }
   clear() {
     let rowCount = this.getRowCount();
@@ -479,13 +479,13 @@ class TheApp {
     let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
     if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
       let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
-      logger.logAndAlert('Warning', msg);
+      logger.writeLogLine(msg);
       return false;
     }
     let attorneyName = availabilityData[availabilities.columnIndex('Name')];
     let rowIdx = attorneys.lookupRowIndex('Name', attorneyName);
     if (rowIdx === -1) {
-      logger.logAndAlert('Warning', 'Unknown attorney name: "' + attorneyName + '". Skipping it.');
+      logger.writeLogLine('Unknown attorney name: "' + attorneyName + '". Skipping it.');
       return false;
     }
     return true;
@@ -590,7 +590,7 @@ class TheApp {
       let newCaseNumber = matchData[matches.columnIndex('Case Number')];
       if (emailedMatches.lookupRowIndex('Case Number', newCaseNumber) != -1) {
         let msg = 'Case: ' + newCaseNumber + ' already emailed. Skipping it.';
-        logger.logAndAlert('Warning', msg);
+        logger.writeLogLine(msg);
         continue;
       }
       matchData[matches.columnIndex('Timestamp')] = d;
