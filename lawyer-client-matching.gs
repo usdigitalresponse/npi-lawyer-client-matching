@@ -386,6 +386,7 @@ class TheApp {
     let programEligibilityIndex = clients.columnIndex('Program Eligibility ' + lineSep + 'auto');
     let applicationStatusIndex = clients.columnIndex('Rental Assistance Application Status' + lineSep + 'auto & manual');
     let courtDateIndex = clients.columnIndex('Court Date' + lineSep + 'auto');
+    let bulkAgreementIndex = clients.columnIndex('Associated with Bulk Agreement?');
     let today = new Date();
     let lastClientIndex = clients.getRowCount();
     let clientIndex;
@@ -396,7 +397,8 @@ class TheApp {
       if (dateOK &&
           clientData[confirmationIndex] === 'Yes' &&
           clientData[programEligibilityIndex] === 'Verified eligible' &&
-          clientData[applicationStatusIndex] === 'Rental application accepted as complete') {
+          clientData[applicationStatusIndex] === 'Rental application accepted as complete' &&
+          clientData[bulkAgreementIndex] !== 'Yes') {
         if (!clientData[matchStatusIndex]) {
           indexArray.push(clientIndex);
         }
