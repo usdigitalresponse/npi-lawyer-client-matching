@@ -382,21 +382,33 @@ var logger = new Logger();
 var clients = new SheetClass('Clients Raw');
 var lineSep = String.fromCharCode(10);
 
-const UNKNOWN_COURT_DATE = 0;
+function isUnknownDate(dateInput) {
+  const UNKNOWN_COURT_DATE = 0;
+  const CUTOFF_COURT_DATE = new Date('1900-01-01T00:00:00');
+  if (dateInput === UNKNOWN_COURT_DATE) {
+    return true;
+  }
+  if (dateInput < CUTOFF_COURT_DATE) {
+    return true;
+  }
+  return false;
+}
+function handleUnknownDate(dateInput) {
+  const MAX_DATE = new Date(8640000000000000);
+  if (isUnknownDate(dateInput)) {
+    return MAX_DATE;
+  }
+  return dateInput;
+}
+
 function compareByCourtDate(firstElement, secondElement) {
   let courtDateIndex = clients.columnIndex('Court Date' + lineSep + 'auto');
   let firstRow = clients.getRowData(firstElement);
   let secondRow = clients.getRowData(secondElement);
   let firstDate = firstRow[0][courtDateIndex];
   let secondDate = secondRow[0][courtDateIndex];
-
-  const MAX_DATE = new Date(8640000000000000);
-  if (firstDate === UNKNOWN_COURT_DATE) {
-    firstDate = MAX_DATE;
-  }
-  if (secondDate === UNKNOWN_COURT_DATE) {
-    secondDate = MAX_DATE;
-  }
+  firstDate = handleUnknownDate(firstDate);
+  secondDate = handleUnknownDate(secondDate);
   if (firstDate < secondDate) {
     return -1;
   }
@@ -424,7 +436,7 @@ class TheApp {
     for (clientIndex = 2; clientIndex <= lastClientIndex; clientIndex++) {
       let clientData = clients.getRowData(clientIndex)[0];
       let nextCourtDate = clientData[courtDateIndex];
-      let dateOK = (nextCourtDate >= today || nextCourtDate === UNKNOWN_COURT_DATE);
+      let dateOK = (nextCourtDate >= today || isUnknownDate(nextCourtDate));
       if (dateOK &&
           clientData[confirmationIndex] === 'Yes' &&
           clientData[programEligibilityIndex] === 'Verified eligible' &&
@@ -553,7 +565,7 @@ class TheApp {
     match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex('Landlord Address' + lineSep + 'auto')];
     match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
     let nextCourtDate = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
-    if (nextCourtDate === UNKNOWN_COURT_DATE) {
+    if (isUnknownDate(nextCourtDate)) {
       nextCourtDate = 'Unknown';
     }
     match[matches.columnIndex('Next Court Date')] = nextCourtDate;
