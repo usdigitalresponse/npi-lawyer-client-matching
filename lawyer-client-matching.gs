@@ -207,6 +207,15 @@ class SheetClass {
     let range = this.sheet.getRange('A' + rowNumber + ':' + this.lastColumn + rowNumber);
     range.setValues(data);
   }
+  columnIndexFromLetter(colId) {
+    let highOrderVal = 0;
+    let lowOrderIndex = 0;
+    if (colId.length > 1) {
+      highOrderVal = colId.charCodeAt(0) - 'A'.charCodeAt(0);
+      lowOrderIndex = 1;
+    }
+    return highOrderVal + colId.charCodeAt(lowOrderIndex) - 'A'.charCodeAt(0);
+  }
   columnLetterFromIndex(columnIdx) {
     let charCodeA = 'A'.charCodeAt(0);
     let higherOrderDigit = Math.floor(columnIdx / 26);
@@ -252,6 +261,27 @@ class SheetClass {
       range.clear();
     }
   }
+  hackTime(sData) {
+    if (this.name === 'Clients Raw') {
+      let nextCourtDateIndex = this.columnIndexFromLetter('T');
+      let uniqueIdIndex = this.columnIndexFromLetter('D');
+      for (let rowIndex = 1; rowIndex < sData.length; rowIndex++) {
+        if (!sData[rowIndex][uniqueIdIndex]) {
+            // Empty dropdowns in a sheet return non-null data,
+            // so use the 'key' column to determine actual number of rows.
+          break; 
+        }
+        let strangeDate = sData[rowIndex][nextCourtDateIndex];
+        try {
+          strangeDate.setHours(12);
+        } catch (err) {
+          let rowNumber = rowIndex + 1;
+          console.log('Bad date at column "T", row ' + rowNumber + ': "' + strangeDate + '"');
+        }
+        sData[rowIndex][nextCourtDateIndex] = strangeDate;
+      }
+    }
+  }
   cloneSheet(sourceId, sourceSheetName) {
     let sourceWorkbook = SpreadsheetApp.openById(sourceId);
     let sourceSheet = sourceWorkbook.getSheetByName(sourceSheetName);
@@ -259,6 +289,7 @@ class SheetClass {
     let rangeSpec = fullRange.getA1Notation();
     let sData = fullRange.getValues();
     this.sheet.clear({contentsOnly: true});
+    this.hackTime(sData);
     this.sheet.getRange(rangeSpec).setValues(sData);
   }
   copyFrom(sourceSheetName, sourceRange) {
