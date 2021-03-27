@@ -518,13 +518,13 @@ class TheApp {
     let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
     if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
       let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
-      logger.writeLogLine(msg);
+      logger.writeLogLine([msg]);
       return false;
     }
     let attorneyName = availabilityData[availabilities.columnIndex('Name')];
     let rowIdx = attorneys.lookupRowIndex('Name', attorneyName);
     if (rowIdx === -1) {
-      logger.writeLogLine('Unknown attorney name: "' + attorneyName + '". Skipping it.');
+      logger.writeLogLine(['Unknown attorney name: "' + attorneyName + '". Skipping it.']);
       return false;
     }
     return true;
@@ -629,7 +629,7 @@ class TheApp {
       let newCaseNumber = matchData[matches.columnIndex('Case Number')];
       if (emailedMatches.lookupRowIndex('Case Number', newCaseNumber) != -1) {
         let msg = 'Case: ' + newCaseNumber + ' already emailed. Skipping it.';
-        logger.writeLogLine(msg);
+        logger.writeLogLine([msg]);
         continue;
       }
       matchData[matches.columnIndex('Timestamp')] = d;
