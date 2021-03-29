@@ -276,7 +276,9 @@ class SheetClass {
           strangeDate.setHours(12);
         } catch (err) {
           let rowNumber = rowIndex + 1;
-          console.log('Bad date at column "T", row ' + rowNumber + ': "' + strangeDate + '"');
+          if (strangeDate !== '') {
+            console.log('Bad date at column "T", row ' + rowNumber + ': "' + strangeDate + '"');
+          }
         }
         sData[rowIndex][nextCourtDateIndex] = strangeDate;
       }
@@ -385,6 +387,9 @@ var lineSep = String.fromCharCode(10);
 function isUnknownDate(dateInput) {
   const UNKNOWN_COURT_DATE = 0;
   const CUTOFF_COURT_DATE = new Date('1900-01-01T00:00:00');
+  if (dateInput === '') {
+    return true;
+  }
   if (dateInput === UNKNOWN_COURT_DATE) {
     return true;
   }
