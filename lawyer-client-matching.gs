@@ -593,7 +593,9 @@ class TheApp {
     let raw;
     while (raw = iter.getNextRow()) {
       if (lastEmailedDate < raw[rawAvailabilities.columnIndex('Timestamp')]) {
-        availabilities.setRowData(nextRowNumber++, raw);
+        raw[availabilities.columnIndex('Type')] = '';
+        raw[availabilities.columnIndex('Type Rank')] = '';
+        availabilities.setRowData(nextRowNumber++, [raw]);
       }
     }
     this.cleanUpAvailabilities(availabilities, attorneys);
