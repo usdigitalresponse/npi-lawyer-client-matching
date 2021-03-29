@@ -573,10 +573,24 @@ class TheApp {
     match[matches.columnIndex('Pending Timestamp')] = '';
     return match;
   }
-  setupAvailabilities(attorneys) {
+  setupAvailabilities(attorneys, emailedMatches) {
     let availabilities = new SheetClass('Ranked Availability');
     let rawAvailabilities = new SheetClass('Availability Raw');
-    availabilities.copyFrom('Availability Raw', 'A2:C' + rawAvailabilities.getRowCount());
+        // Delete all rows in ‘Ranked Availability’. There may have been unused availabilities,
+        // but they are from last week (or whenever the last ‘asking for confirmation’ emails went out).
+    availabilities.clear();
+        // Copy from ‘Availability Raw’ all rows timestamped since the most recent email went out.
+        // Assumes emailedMatches rows stay in Timestamp order.
+    let lastEmailed = emailedMatches.getRowData(emailedMatches.getRowCount());
+    let lastEmailedDate = lastEmailed[0][emailedMatches.columnIndex('Timestamp')];
+    let nextRowNumber = 2;
+    let iter = new SheetRowIterator(rawAvailabilities);
+    let raw;
+    while (raw = iter.getNextRow()) {
+      if (lastEmailedDate < raw[rawAvailabilities.columnIndex('Timestamp')]) {
+        availabilities.setRowData(nextRowNumber++, raw);
+      }
+    }
     this.cleanUpAvailabilities(availabilities, attorneys);
     availabilities.sortSheet('Type Rank', true);
     return availabilities;
@@ -590,10 +604,9 @@ class TheApp {
       return;
     }
     let attorneys = new SheetClass('Staff List');
-    let availabilities = this.setupAvailabilities(attorneys);
-//    this.updateStaff(attorneys); // Until the Google Form for adding attorneys is enabled.
-//    attorneys.sortSheet('FirstName', true); // Until 'length of empty column' bug is verified.
     let emailedMatches = new SheetClass('Emailed Matches');
+    let availabilities = this.setupAvailabilities(attorneys, emailedMatches);
+//    this.updateStaff(attorneys); // Until the Google Form for adding attorneys is enabled.
     let matches = new SheetClass('Created Matches');
     matches.clear();
 
