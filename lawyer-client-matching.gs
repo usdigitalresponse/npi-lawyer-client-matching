@@ -6,6 +6,8 @@ function onOpen() {
   SpreadsheetApp.getActive().addMenu('ESP Actions', menuItems);
 }
 
+var logger = new Logger();
+
 function showOKAlert(header, body) {
   ui = SpreadsheetApp.getUi();
   ui.alert(header, body, ui.ButtonSet.OK);
@@ -32,63 +34,6 @@ class SheetRowIterator {
     return this.sheet.getRowData(this.nextIndex++)[0];
   }
 }
-
-// Google Javascript isn't ES6,so no support for 'super' keyword. Thus the 'has-a' relationship. :(
-class BaseSheetClass {
-  constructor(name) {
-    this.subSheet = new SheetClass(name);
-    this.lastColumn = this.subSheet.columnLetterFromIndex(maxColumns);
-  }
-  getRowCount() {
-    return this.subSheet.getRowCount();
-  }
-  getRowData(rowNumber) {
-    let rangeSpec = 'A' + rowNumber + ':' + this.lastColumn + rowNumber;
-    let range = this.subSheet.sheet.getRange(rangeSpec);
-    let ret = range.getValues();
-    this.subSheet.removeEmptyCells(ret);
-    return ret;
-  }
-  removeEmptyCells(sheet, rowData) {
-    let i;
-    let lastCol = rowData.length - 1;
-    let len = sheet.headerData[0].length;
-    for (i = lastCol; i >= 0 && rowData.length > len; i--) {
-      if (rowData[i] === '') {
-        rowData.pop();
-      } else {
-        break;
-      }
-    }
-  }
-  appendRow(data) {
-    this.subSheet.sheet.appendRow(data);
-  }
-}
-
-class Logger {
-  constructor() {
-    try {
-      this.logSheet = new BaseSheetClass('Do NOT Edit - Log');
-    } catch(err) {
-      console.log('Logger constructor exception: ' + err);
-      this.logSheet = null;
-    }
-  }
-  writeLogLine(data) {
-    if (this.logSheet) {
-      let d = new Date();
-      data.unshift(d);
-      this.logSheet.appendRow(data);
-    }
-    console.log(data);
-  }
-  logAndAlert(title, msg) {
-    showAlert(title, msg);
-    logger.writeLogLine([title, msg]);
-  }
-}
-var logger = new Logger();
 
 var clients = new SheetClass('Clients Raw');
 var lineSep = String.fromCharCode(10);
