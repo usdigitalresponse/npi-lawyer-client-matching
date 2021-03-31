@@ -1,8 +1,12 @@
 const maxColumns = 200;
 class SheetClass {
-  constructor(name) {
+  constructor(name, workbookId) {
     this.name = name;
-    this.sheet = SpreadsheetApp.getActive().getSheetByName(name);
+    if (workbookId) {
+      this.sheet = SpreadsheetApp.openById(workbookId).getSheetByName(name);
+    } else {
+      this.sheet = SpreadsheetApp.getActive().getSheetByName(name);
+    }
     this.findLastColumnHeader();
     let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
     this.headerData = headerRange.getValues();
