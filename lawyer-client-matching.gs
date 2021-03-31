@@ -8,19 +8,6 @@ function onOpen() {
 
 var logger = new Logger();
 
-function showOKAlert(header, body) {
-  ui = SpreadsheetApp.getUi();
-  ui.alert(header, body, ui.ButtonSet.OK);
-}
-
-function showAlert(title, msg) {
-  try {
-    showOKAlert(title, msg);
-  } catch(err) {
-    console.log(title + ': ' + msg);
-  }
-}
-
 class SheetRowIterator {
   constructor(sheet) {
     this.sheet = sheet;

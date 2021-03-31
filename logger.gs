@@ -43,6 +43,13 @@ class Logger {
       this.logSheet = null;
     }
   }
+  showAlert(title, msg) {
+    try {
+      showOKAlert(title, msg);
+    } catch(err) {
+      console.log(title + ': ' + msg);
+    }
+  }
   writeLogLine(data) {
     if (this.logSheet) {
       let d = new Date();
@@ -52,7 +59,7 @@ class Logger {
     console.log(data);
   }
   logAndAlert(title, msg) {
-    showAlert(title, msg);
-    logger.writeLogLine([title, msg]);
+    this.showAlert(title, msg);
+    this.writeLogLine([title, msg]);
   }
 }
