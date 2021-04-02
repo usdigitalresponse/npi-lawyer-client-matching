@@ -1,4 +1,14 @@
 class OnSubmitHandler {
+  constructor() {
+    this.logger = new Logger('Do NOT Edit - Log', FormApp.getActiveForm().getDestinationId());
+  }
+  writeLogLine(messageString) {
+    if (this.logger) {
+      this.logger.writeLogLine(['OnSubmitHandler', messageString]);
+    } else {
+      console.log('OnSubmitHandler' + messageString);
+    }
+  }
   findEmailedMatch(emailedMatches, attorneyClientId) {
     let names = attorneyClientId.split(' - ');
     let attorneyName = names[0];
@@ -17,51 +27,45 @@ class OnSubmitHandler {
         return iter.nextIndex - 1;
       }
     }
-    let msg = '"' + attorneyClientId + '" not found in "Emailed Matches"';
-    logger.logAndAlert('Error', msg);
-    throw msg;
+    throw '"' + attorneyClientId + '" not found in "Emailed Matches"';
   }
-  updateConfirmed(range) {
-    const confirmationsRaw = new SheetClass('Confirmations Raw');
-    let emailedMatches = new SheetClass('Emailed Matches');
-    let confirmedMatches = new SheetClass('Confirmed Matches');
-    const colNames = [
-      'Timestamp', 'Lawyer First Name', 'Lawyer Last Name',
-      'Lawyer Email', 'Client First Name', 'Client Last Name', 'Client Email', 'Client UUID',
-      'Client Folder', 'Client Phone Number', 'Client Address', 'Landlord Name',  'Landlord Email',
-      'Landlord Phone Number', 'Landlord Address', 'Case Number', 'Next Court Date', 'Match Status'
-    ]
-    let rowNum = confirmedMatches.getRowCount() + 1;
-    const lastRow = range.getLastRow();
-    const firstRow = lastRow - range.getHeight() + 1;
-    for (let row = firstRow; row <= lastRow; row++) {
-      const rawRow = confirmationsRaw.getRowData(row)[0]; 
-      const response = rawRow[confirmationsRaw.columnIndex('Do you accept the case?')];
-      if (response === 'Yes, I am available and have no conflict') {
-        const id = rawRow[confirmationsRaw.columnIndex('Case')];
-        const rowNumber = this.findEmailedMatch(emailedMatches, id);
-        let sourceData = emailedMatches.getRowData(rowNumber);
-        let targetData = [];
-        for (let colName of colNames) {
-          targetData[confirmedMatches.columnIndex(colName)] = sourceData[0][emailedMatches.columnIndex(colName)];
-        }
-        targetData[confirmedMatches.columnIndex('Confimed/Denied Timestamp')] = (new Date()).toString();
-        targetData[confirmedMatches.columnIndex('Attorney Name - Client Name')] = 'see other columns';
-        targetData[confirmedMatches.columnIndex('Do you accept the case?')] = 'Yes, I am available and have no conflict';
-        confirmedMatches.setRowData(rowNum++, [targetData]);
+  updateConfirmed() {
+    const confirmationsRaw = new SheetClass('Confirmations Raw',FormApp.getActiveForm().getDestinationId());
+    const rawRow = confirmationsRaw.getRowData(confirmationsRaw.getRowCount())[0]; 
+    const response = rawRow[confirmationsRaw.columnIndex('Do you accept the case?')];
+    if (response === 'Yes, I am available and have no conflict') {
+      const attorneyClientId = rawRow[confirmationsRaw.columnIndex('Case')];
+      const emailedMatches = new SheetClass('Emailed Matches', FormApp.getActiveForm().getDestinationId());
+      const rowNumber = this.findEmailedMatch(emailedMatches, attorneyClientId);
+      const confirmedMatches = new SheetClass('Confirmed Matches', FormApp.getActiveForm().getDestinationId());
+      const colNames = [
+        'Timestamp', 'Lawyer First Name', 'Lawyer Last Name',
+        'Lawyer Email', 'Client First Name', 'Client Last Name', 'Client Email', 'Client UUID',
+        'Client Folder', 'Client Phone Number', 'Client Address', 'Landlord Name',  'Landlord Email',
+        'Landlord Phone Number', 'Landlord Address', 'Case Number', 'Next Court Date', 'Match Status'
+      ]
+      const sourceData = emailedMatches.getRowData(rowNumber)[0];
+      let targetData = [];
+      for (let colName of colNames) {
+        targetData[confirmedMatches.columnIndex(colName)] = sourceData[emailedMatches.columnIndex(colName)];
       }
+      targetData[confirmedMatches.columnIndex('Timestamp')] = (new Date()).toString();
+      targetData[confirmedMatches.columnIndex('Confimed/Denied Timestamp')] = targetData[confirmedMatches.columnIndex('Timestamp')];
+      targetData[confirmedMatches.columnIndex('Attorney Name - Client Name')] = attorneyClientId;
+      targetData[confirmedMatches.columnIndex('Do you accept the case?')] = response;
+      confirmedMatches.setRowData(confirmedMatches.getRowCount() + 1, [targetData]);
     }
   }
   handleSubmit(e) {
     try {
-      const range = e.range;
-      if (range.getSheet().getName() === 'Confirmations Raw') {
-        this.updateConfirmed(range);
-      }
+      // Works ONLY as long as there is only one trigger.
+      this.updateConfirmed();
     } catch(e) {
-      console.log('handleSubmit catch: ' + e);
+      this.writeLogLine('handleSubmit catch: ' + e);
     }
   }
 }
-var onSubmitHandler = new OnSubmitHandler();
-function onSubmitForm(e) { onSubmitHandler.handleSubmit(e); }
+function onSubmitForm(e) {
+  let onSubmitHandler = new OnSubmitHandler();
+  onSubmitHandler.handleSubmit(e);
+}
