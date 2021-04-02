@@ -179,3 +179,17 @@ class SheetClass {
     return ret;
   }
 }
+
+class SheetRowIterator {
+  constructor(sheet) {
+    this.sheet = sheet;
+    this.lastIndex = this.sheet.getRowCount();
+    this.nextIndex = 2;
+  }
+  getNextRow() {
+    if (this.nextIndex > this.lastIndex) {
+      return null;
+    }
+    return this.sheet.getRowData(this.nextIndex++)[0];
+  }
+}

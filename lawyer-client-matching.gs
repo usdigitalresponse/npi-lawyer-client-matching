@@ -8,20 +8,6 @@ function onOpen() {
 
 var logger = new Logger();
 
-class SheetRowIterator {
-  constructor(sheet) {
-    this.sheet = sheet;
-    this.lastIndex = this.sheet.getRowCount();
-    this.nextIndex = 2;
-  }
-  getNextRow() {
-    if (this.nextIndex > this.lastIndex) {
-      return null;
-    }
-    return this.sheet.getRowData(this.nextIndex++)[0];
-  }
-}
-
 var clients = new SheetClass('Clients Raw');
 var lineSep = String.fromCharCode(10);
 
