@@ -29,37 +29,47 @@ class OnSubmitHandler {
     }
     throw '"' + attorneyClientId + '" not found in "Emailed Matches"';
   }
-  updateConfirmed() {
-    const confirmationsRaw = new SheetClass('Confirmations Raw',FormApp.getActiveForm().getDestinationId());
-    const rawRow = confirmationsRaw.getRowData(confirmationsRaw.getRowCount())[0]; 
-    const response = rawRow[confirmationsRaw.columnIndex('Do you accept the case?')];
-    if (response === 'Yes, I am available and have no conflict') {
-      const attorneyClientId = rawRow[confirmationsRaw.columnIndex('Case')];
-      const emailedMatches = new SheetClass('Emailed Matches', FormApp.getActiveForm().getDestinationId());
-      const rowNumber = this.findEmailedMatch(emailedMatches, attorneyClientId);
-      const confirmedMatches = new SheetClass('Confirmed Matches', FormApp.getActiveForm().getDestinationId());
-      const colNames = [
-        'Timestamp', 'Lawyer First Name', 'Lawyer Last Name',
-        'Lawyer Email', 'Client First Name', 'Client Last Name', 'Client Email', 'Client UUID',
-        'Client Folder', 'Client Phone Number', 'Client Address', 'Landlord Name',  'Landlord Email',
-        'Landlord Phone Number', 'Landlord Address', 'Case Number', 'Next Court Date', 'Match Status'
-      ]
-      const sourceData = emailedMatches.getRowData(rowNumber)[0];
-      let targetData = [];
-      for (let colName of colNames) {
-        targetData[confirmedMatches.columnIndex(colName)] = sourceData[emailedMatches.columnIndex(colName)];
-      }
-      targetData[confirmedMatches.columnIndex('Timestamp')] = (new Date()).toString();
-      targetData[confirmedMatches.columnIndex('Confimed/Denied Timestamp')] = targetData[confirmedMatches.columnIndex('Timestamp')];
-      targetData[confirmedMatches.columnIndex('Attorney Name - Client Name')] = attorneyClientId;
-      targetData[confirmedMatches.columnIndex('Do you accept the case?')] = response;
-      confirmedMatches.setRowData(confirmedMatches.getRowCount() + 1, [targetData]);
+  updateConfirmed(attorneyClientId, answer) {
+    const emailedMatches = new SheetClass('Emailed Matches', FormApp.getActiveForm().getDestinationId());
+    const rowNumber = this.findEmailedMatch(emailedMatches, attorneyClientId);
+    const confirmedMatches = new SheetClass('Confirmed Matches', FormApp.getActiveForm().getDestinationId());
+    const colNames = [
+      'Timestamp', 'Lawyer First Name', 'Lawyer Last Name',
+      'Lawyer Email', 'Client First Name', 'Client Last Name', 'Client Email', 'Client UUID',
+      'Client Folder', 'Client Phone Number', 'Client Address', 'Landlord Name',  'Landlord Email',
+      'Landlord Phone Number', 'Landlord Address', 'Case Number', 'Next Court Date', 'Match Status'
+    ]
+    const sourceData = emailedMatches.getRowData(rowNumber)[0];
+    let targetData = [];
+    for (let colName of colNames) {
+      targetData[confirmedMatches.columnIndex(colName)] = sourceData[emailedMatches.columnIndex(colName)];
     }
+    targetData[confirmedMatches.columnIndex('Timestamp')] = (new Date()).toString();
+    targetData[confirmedMatches.columnIndex('Confimed/Denied Timestamp')] = targetData[confirmedMatches.columnIndex('Timestamp')];
+    targetData[confirmedMatches.columnIndex('Attorney Name - Client Name')] = attorneyClientId;
+    targetData[confirmedMatches.columnIndex('Do you accept the case?')] = answer;
+    confirmedMatches.setRowData(confirmedMatches.getRowCount() + 1, [targetData]);
   }
   handleSubmit(e) {
     try {
       // Works ONLY as long as there is only one trigger.
-      this.updateConfirmed();
+      let caseId = '';
+      let answer = ''
+      let itemResponses = e.response.getItemResponses();
+      for (var j = 0; j < itemResponses.length; j++) {
+        var itemResponse = itemResponses[j];
+        switch (itemResponse.getItem().getTitle()) {
+          case 'Case':
+            { caseId = itemResponse.getResponse(); break; }
+          case 'Do you accept the case?':
+            { answer = itemResponse.getResponse(); break; }
+          default:
+            { this.writeLogLine('Unknown itemResponse.getItem().getTitle(): ' + itemResponse.getItem().getTitle()); }
+        }
+      }
+      if (answer === 'Yes, I am available and have no conflict') {
+        this.updateConfirmed(caseId, answer);
+      }
     } catch(e) {
       this.writeLogLine('handleSubmit catch: ' + e);
     }
