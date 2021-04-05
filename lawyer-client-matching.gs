@@ -34,7 +34,7 @@ function handleUnknownDate(dateInput) {
 }
 
 function compareByCourtDate(firstElement, secondElement) {
-  let courtDateIndex = clients.columnIndex('Court Date' + lineSep + 'auto');
+  let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
   let firstRow = clients.getRowData(firstElement);
   let secondRow = clients.getRowData(secondElement);
   let firstDate = firstRow[0][courtDateIndex];
@@ -159,7 +159,7 @@ class TheApp {
   }
   clientCanMatch(clientIndex, sortedClientArray, emailedMatches, availabilities, availabilityData, attorneys) {
     let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
-    let caseNumber = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
+    let caseNumber = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
     if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
       let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
       logger.writeLogLine([msg]);
@@ -184,19 +184,19 @@ class TheApp {
     match[matches.columnIndex('Lawyer First Name')] = lawyerNames[0];
     match[matches.columnIndex('Lawyer Last Name')] = lawyerNames[1];
     match[matches.columnIndex('Lawyer Email')] = attorneyData[attorneys.columnIndex('Email')];
-    match[matches.columnIndex('Client First Name')] = clientData[clients.columnIndex('First' + lineSep + 'auto')];
-    match[matches.columnIndex('Client Last Name')] = clientData[clients.columnIndex('Last' + lineSep + 'auto')];
-    match[matches.columnIndex('Client Email')] = clientData[clients.columnIndex('Email' + lineSep + 'auto')];
-    match[matches.columnIndex('Client UUID')] = clientData[clients.columnIndex('Unique ID' + lineSep + 'auto')];
-    match[matches.columnIndex('Client Folder')] = clientData[clients.columnIndex('Folder' + lineSep + 'auto')];
-    match[matches.columnIndex('Client Phone Number')] = clientData[clients.columnIndex('Phone' + lineSep + 'auto')];
-    match[matches.columnIndex('Client Address')] = clientData[clients.columnIndex('Address'  + lineSep + 'auto')];
-    match[matches.columnIndex('Landlord Name')] = clientData[clients.columnIndex('Landlord Name'  + lineSep + 'auto')];
-    match[matches.columnIndex('Landlord Email')] = clientData[clients.columnIndex('Landlord Email'  + lineSep + 'auto')];
-    match[matches.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex('Landlord Phone' + lineSep + 'auto')];
-    match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex('Landlord Address' + lineSep + 'auto')];
-    match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex('Case Number' + lineSep + 'auto')];
-    let nextCourtDate = clientData[clients.columnIndex('Court Date' + lineSep + 'auto')];
+    match[matches.columnIndex('Client First Name')] = clientData[clients.columnIndex(clientColumnMetadata.firstColName)];
+    match[matches.columnIndex('Client Last Name')] = clientData[clients.columnIndex(clientColumnMetadata.lastColName)];
+    match[matches.columnIndex('Client Email')] = clientData[clients.columnIndex(clientColumnMetadata.emailColName)];
+    match[matches.columnIndex('Client UUID')] = clientData[clients.columnIndex(clientColumnMetadata.uniqueIdColName)];
+    match[matches.columnIndex('Client Folder')] = clientData[clients.columnIndex(clientColumnMetadata.folderColName)];
+    match[matches.columnIndex('Client Phone Number')] = clientData[clients.columnIndex(clientColumnMetadata.clientPhoneColName)];
+    match[matches.columnIndex('Client Address')] = clientData[clients.columnIndex(clientColumnMetadata.clientAddressColName)];
+    match[matches.columnIndex('Landlord Name')] = clientData[clients.columnIndex(clientColumnMetadata.landLordNameColName)];
+    match[matches.columnIndex('Landlord Email')] = clientData[clients.columnIndex(clientColumnMetadata.landlordEmailColName)];
+    match[matches.columnIndex('Landlord Phone Number')] = 'UNKNOWN'; // clientData[clients.columnIndex(clientColumnMetadata.landlordPhoneColName)];
+    match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex(clientColumnMetadata.landlordAddressColName)];
+    match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
+    let nextCourtDate = clientData[clients.columnIndex(clientColumnMetadata.courtDateColName)];
     if (isUnknownDate(nextCourtDate)) {
       nextCourtDate = 'Unknown';
     }
