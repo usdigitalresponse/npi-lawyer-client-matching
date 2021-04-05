@@ -15,7 +15,7 @@ class ClientColumnMetadata {
       this.uniqueIdColumn = 'A';
       this.rentalApplicationStatusColName = 'Rental Assistance Application Status';
       this.courtDateColName = 'Confirmed Court Date' + lineSep + 'manual';
-      throw 'this.programEligibilityColName = UNKNOWN';
+      this.programEligibilityColName = 'Program Eligibility';
     }
   }
 }

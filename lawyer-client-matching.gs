@@ -58,9 +58,9 @@ class TheApp {
     let indexArray = [];
     let confirmationIndex = clients.columnIndex('Clerk Confirmation' + lineSep + 'manual');
     let matchStatusIndex = clients.columnIndex('Match Status' + lineSep + ' auto - Pending, Confirmed, Denied' + lineSep + 'manual for Reassigned');
-    let programEligibilityIndex = clients.columnIndex('Program Eligibility ' + lineSep + 'auto');
-    let applicationStatusIndex = clients.columnIndex('Rental Assistance Application Status' + lineSep + 'auto & manual');
-    let courtDateIndex = clients.columnIndex('Court Date' + lineSep + 'auto');
+    let programEligibilityIndex = clients.columnIndex(clientColumnMetadata.programEligibilityColName);
+    let applicationStatusIndex = clients.columnIndex(clientColumnMetadata.rentalApplicationStatusColName);
+    let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
     let bulkAgreementIndex = clients.columnIndex('Associated with Bulk Agreement?');
     let today = new Date();
     let lastClientIndex = clients.getRowCount();
