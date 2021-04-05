@@ -271,7 +271,7 @@ class TheApp {
     logger.logAndAlert('Info', msg);
   }
   performMatching() {
-    clients.cloneSheet('1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo', 'Client List');
+    clients.cloneSheet(clientColumnMetadata.currentVersion, 'Client List');
     doMatching();
   }
   emailLawyers() {

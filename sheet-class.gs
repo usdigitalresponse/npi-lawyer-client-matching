@@ -133,8 +133,8 @@ class SheetClass {
   }
   hackTime(sData) {
     if (this.name === 'Clients Raw') {
-      let nextCourtDateIndex = this.columnIndexFromLetter('T');
-      let uniqueIdIndex = this.columnIndexFromLetter('D');
+      let nextCourtDateIndex = this.columnIndexFromLetter(clientColumnMetadata.nextCourtDateColumn);
+      let uniqueIdIndex = this.columnIndexFromLetter(clientColumnMetadata.uniqueIdColumn);
       for (let rowIndex = 1; rowIndex < sData.length; rowIndex++) {
         if (!sData[rowIndex][uniqueIdIndex]) {
             // Empty dropdowns in a sheet return non-null data,
@@ -147,7 +147,8 @@ class SheetClass {
         } catch (err) {
           let rowNumber = rowIndex + 1;
           if (strangeDate !== '') {
-            console.log('Bad date at column "T", row ' + rowNumber + ': "' + strangeDate + '"');
+            console.log('Bad date from eviction sheet at column "' + clientColumnMetadata.nextCourtDateColumn +
+                  '", row ' + rowNumber + ': "' + strangeDate + '"');
           }
         }
         sData[rowIndex][nextCourtDateIndex] = strangeDate;
