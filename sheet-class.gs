@@ -81,7 +81,7 @@ class SheetClass {
     let highOrderVal = 0;
     let lowOrderIndex = 0;
     if (colId.length > 1) {
-      highOrderVal = colId.charCodeAt(0) - 'A'.charCodeAt(0);
+      highOrderVal = 26 * (colId.charCodeAt(0) - 'A'.charCodeAt(0) + 1);
       lowOrderIndex = 1;
     }
     return highOrderVal + colId.charCodeAt(lowOrderIndex) - 'A'.charCodeAt(0);
