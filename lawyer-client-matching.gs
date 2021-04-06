@@ -193,7 +193,11 @@ class TheApp {
     match[matches.columnIndex('Client Address')] = clientData[clients.columnIndex(clientColumnMetadata.clientAddressColName)];
     match[matches.columnIndex('Landlord Name')] = clientData[clients.columnIndex(clientColumnMetadata.landLordNameColName)];
     match[matches.columnIndex('Landlord Email')] = clientData[clients.columnIndex(clientColumnMetadata.landlordEmailColName)];
-    match[matches.columnIndex('Landlord Phone Number')] = 'UNKNOWN'; // clientData[clients.columnIndex(clientColumnMetadata.landlordPhoneColName)];
+    let landlordPhone = 'UNKNOWN';
+    if (clientColumnMetadata.landlordPhoneColName) {
+      landlordPhone = clientData[clients.columnIndex(clientColumnMetadata.landlordPhoneColName)];
+    }
+    match[matches.columnIndex('Landlord Phone Number')] = landlordPhone; 
     match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex(clientColumnMetadata.landlordAddressColName)];
     match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
     let nextCourtDate = clientData[clients.columnIndex(clientColumnMetadata.courtDateColName)];

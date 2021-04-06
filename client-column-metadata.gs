@@ -39,7 +39,7 @@ class ClientColumnMetadata {
       this.clientAddressColName = 'Tenant Address';
       this.landLordNameColName = 'Folder';
       this.landlordEmailColName = 'Landlord Email';
-      this.landlordPhoneColName = 'Landlord Phone';
+      this.landlordPhoneColName = '';
       this.landlordAddressColName = 'Landlord Address';
     }
   }
