@@ -24,7 +24,7 @@ class ClientColumnMetadata {
       this.landlordPhoneColName = 'Landlord Phone'  + lineSep + 'auto';
       this.landlordAddressColName = 'Landlord Address'  + lineSep + 'auto';
     } else {
-      this.nextCourtDateColumn = 'AN';
+      this.nextCourtDateColumn = 'AP';
       this.uniqueIdColumn = 'A';
       this.rentalApplicationStatusColName = 'Rental Assistance Application Status';
       this.courtDateColName = 'Confirmed Court Date' + lineSep + 'manual';
@@ -39,7 +39,7 @@ class ClientColumnMetadata {
       this.clientAddressColName = 'Tenant Address';
       this.landLordNameColName = 'Folder';
       this.landlordEmailColName = 'Landlord Email';
-      this.landlordPhoneColName = '';
+      this.landlordPhoneColName = 'Landlord Phone';
       this.landlordAddressColName = 'Landlord Address';
     }
   }

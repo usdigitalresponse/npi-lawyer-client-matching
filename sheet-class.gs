@@ -142,13 +142,15 @@ class SheetClass {
           break; 
         }
         let strangeDate = sData[rowIndex][nextCourtDateIndex];
-        try {
-          strangeDate.setHours(12);
-        } catch (err) {
-          let rowNumber = rowIndex + 1;
-          if (strangeDate !== '') {
-            console.log('Bad date from eviction sheet at column "' + clientColumnMetadata.nextCourtDateColumn +
-                  '", row ' + rowNumber + ': "' + strangeDate + '"');
+        if (strangeDate !== 0) {
+          try {
+            strangeDate.setHours(12);
+          } catch (err) {
+            let rowNumber = rowIndex + 1;
+            if (strangeDate !== '') {
+              console.log('Bad date from eviction sheet at column "' + clientColumnMetadata.nextCourtDateColumn +
+                    '", row ' + rowNumber + ': "' + strangeDate + '"');
+            }
           }
         }
         sData[rowIndex][nextCourtDateIndex] = strangeDate;
