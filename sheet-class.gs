@@ -59,7 +59,8 @@ class SheetClass {
       let colLetter = this.columnLetterFromIndex(colIndex);
       let rangeSpec = colLetter + '1:' + colLetter;
       let values = this.sheet.getRange(rangeSpec).getValues();
-      count = Math.max(count, values.filter(String).length);
+      let numValues = values.filter(String).length;
+      count = Math.max(count, numValues);
     }
     return count;
   }
@@ -123,12 +124,22 @@ class SheetClass {
     }
     return -1;
   }
-  clear() {
-    let rowCount = this.getRowCount();
+  getRowCount2(keyColumnName) {
+    let colLetter = this.columnLetterFromIndex(this.columnIndex(keyColumnName));
+    let rangeSpec = colLetter + '1:' + colLetter;
+    let values = this.sheet.getRange(rangeSpec).getValues();
+    let index = values.length - 1;
+    while ((!values[index][0] || values[index][0] === '') && index > 0) {
+      index--;
+    }
+    return index + 1;
+  }
+  clearData(keyColumnName) {
+    let rowCount = this.getRowCount2(keyColumnName);
     if (rowCount > 1) {
       let address = 'A2:' + this.lastColumn + rowCount;
       let range = this.sheet.getRange(address);
-      range.clear();
+      range.deleteCells(SpreadsheetApp.Dimension.ROWS);
     }
   }
   hackTime(sData) {
