@@ -144,8 +144,17 @@ class SheetClass {
   }
   hackTime(sData) {
     if (this.name === 'Clients Raw') {
-      let nextCourtDateIndex = this.columnIndexFromLetter(clientColumnMetadata.nextCourtDateColumn);
-      let uniqueIdIndex = this.columnIndexFromLetter(clientColumnMetadata.uniqueIdColumn);
+      let headerRow = sData[0];
+      let nextCourtDateIndex = headerRow.indexOf(clientColumnMetadata.courtDateColName);
+      if (nextCourtDateIndex === -1) {
+        console.log('Unable to find column named: ' + clientColumnMetadata.courtDateColName + '. Court dates may be off.');
+        return;
+      }
+      let uniqueIdIndex = headerRow.indexOf(clientColumnMetadata.uuidColumnName);
+      if (uniqueIdIndex === -1) {
+        console.log('Unable to find column named: ' + clientColumnMetadata.uuidColumnName + '. Court dates may be off.');
+        return;
+      }
       for (let rowIndex = 1; rowIndex < sData.length; rowIndex++) {
         if (!sData[rowIndex][uniqueIdIndex]) {
             // Empty dropdowns in a sheet return non-null data,

@@ -6,8 +6,6 @@ class ClientColumnMetadata {
     // Must manually copy/paste headers from source client sheet into 'Client Raw' tab when changing this.
     this.currentVersion = this.v1;
     if (this.currentVersion === this.v1) {
-      this.nextCourtDateColumn = 'T';
-      this.uniqueIdColumn = 'D';
       this.rentalApplicationStatusColName = 'Rental Assistance Application Status' + lineSep + 'auto & manual';
       this.courtDateColName = 'Court Date' + lineSep + 'auto';
       this.programEligibilityColName = 'Program Eligibility ' + lineSep + 'auto';
@@ -24,9 +22,8 @@ class ClientColumnMetadata {
       this.landlordPhoneColName = 'Landlord Phone'  + lineSep + 'auto';
       this.landlordAddressColName = 'Landlord Address'  + lineSep + 'auto';
       this.landlordPaymentStatus = null;
+      this.uuidColumnName = 'Unique ID' + lineSep + 'auto';
     } else {
-      this.nextCourtDateColumn = 'AP';
-      this.uniqueIdColumn = 'A';
       this.rentalApplicationStatusColName = 'Rental Assistance Application Status';
       this.courtDateColName = 'Confirmed Court Date' + lineSep + 'manual';
       this.programEligibilityColName = 'Program Eligibility';
@@ -43,6 +40,7 @@ class ClientColumnMetadata {
       this.landlordPhoneColName = 'Landlord Phone';
       this.landlordAddressColName = 'Landlord Address';
       this.landlordPaymentStatus = 'Landlord Payment Status' + lineSep + 'manual';
+      this.uuidColumnName = 'Unique ID';
     }
   }
 }
