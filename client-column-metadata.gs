@@ -23,6 +23,7 @@ class ClientColumnMetadata {
       this.landlordEmailColName = 'Landlord Email'  + lineSep + 'auto';
       this.landlordPhoneColName = 'Landlord Phone'  + lineSep + 'auto';
       this.landlordAddressColName = 'Landlord Address'  + lineSep + 'auto';
+      this.landlordPaymentStatus = null;
     } else {
       this.nextCourtDateColumn = 'AP';
       this.uniqueIdColumn = 'A';
@@ -41,6 +42,7 @@ class ClientColumnMetadata {
       this.landlordEmailColName = 'Landlord Email';
       this.landlordPhoneColName = 'Landlord Phone';
       this.landlordAddressColName = 'Landlord Address';
+      this.landlordPaymentStatus = 'Landlord Payment Status' + lineSep + 'manual';
     }
   }
 }

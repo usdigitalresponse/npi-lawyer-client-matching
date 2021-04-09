@@ -69,7 +69,12 @@ class TheApp {
       let clientData = clients.getRowData(clientIndex)[0];
       let nextCourtDate = clientData[courtDateIndex];
       let dateOK = (nextCourtDate >= today || isUnknownDate(nextCourtDate));
+      let caseOpen = true;
+      if (clientColumnMetadata.landlordPaymentStatus) {
+        caseOpen = clientData[clients.columnIndex(clientColumnMetadata.landlordPaymentStatus)] === '';
+      }
       if (dateOK &&
+          caseOpen &&
           clientData[confirmationIndex] === 'Yes' &&
           clientData[programEligibilityIndex] === 'Verified eligible' &&
           clientData[applicationStatusIndex] === 'Rental application accepted as complete' &&
@@ -210,7 +215,7 @@ class TheApp {
     let rawAvailabilities = new SheetClass('Availability Raw');
         // Delete all rows in ‘Ranked Availability’. There may have been unused availabilities,
         // but they are from last week (or whenever the last ‘asking for confirmation’ emails went out).
-    availabilities.clear();
+    availabilities.clearData('Name');
         // Copy from ‘Availability Raw’ all rows timestamped since the most recent email went out.
         // Assumes emailedMatches rows stay in Timestamp order.
     let lastEmailed = emailedMatches.getRowData(emailedMatches.getRowCount());
@@ -242,7 +247,7 @@ class TheApp {
     let availabilities = this.setupAvailabilities(attorneys, emailedMatches);
 //    this.updateStaff(attorneys); // Until the Google Form for adding attorneys is enabled.
     let matches = new SheetClass('Created Matches');
-    matches.clear();
+    matches.clearData('Case Number');
 
     let lastAvailabilitiesIndex = availabilities.getRowCount();
     let nextMatchIndex = 2;
@@ -279,7 +284,7 @@ class TheApp {
     let newCaseCount = 0;
     let emailedMatches = new SheetClass('Emailed Matches');
     let awaitingConfirmation = new SheetClass('Awaiting Confirmation');
-    awaitingConfirmation.clear();
+    awaitingConfirmation.clearData('Attorney Name - Client Name');
     let nextEmailMatchIndex = emailedMatches.getRowCount() + 1;
     let matches = new SheetClass('Created Matches');
     let matchIterator = new SheetRowIterator(matches);
