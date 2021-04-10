@@ -189,23 +189,9 @@ class TheApp {
     match[matches.columnIndex('Lawyer First Name')] = lawyerNames[0];
     match[matches.columnIndex('Lawyer Last Name')] = lawyerNames[1];
     match[matches.columnIndex('Lawyer Email')] = attorneyData[attorneys.columnIndex('Email')];
-    match[matches.columnIndex('Client First Name')] = clientData[clients.columnIndex(clientColumnMetadata.firstColName)];
-    match[matches.columnIndex('Client Last Name')] = clientData[clients.columnIndex(clientColumnMetadata.lastColName)];
-    match[matches.columnIndex('Client Email')] = clientData[clients.columnIndex(clientColumnMetadata.emailColName)];
     match[matches.columnIndex('Client UUID')] = clientData[clients.columnIndex(clientColumnMetadata.uniqueIdColName)];
     match[matches.columnIndex('Client Folder')] = clientData[clients.columnIndex(clientColumnMetadata.folderColName)];
-    match[matches.columnIndex('Client Phone Number')] = clientData[clients.columnIndex(clientColumnMetadata.clientPhoneColName)];
-    match[matches.columnIndex('Client Address')] = clientData[clients.columnIndex(clientColumnMetadata.clientAddressColName)];
-    match[matches.columnIndex('Landlord Name')] = clientData[clients.columnIndex(clientColumnMetadata.landLordNameColName)];
-    match[matches.columnIndex('Landlord Email')] = clientData[clients.columnIndex(clientColumnMetadata.landlordEmailColName)];
-    match[matches.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex(clientColumnMetadata.landlordPhoneColName)]; 
-    match[matches.columnIndex('Landlord Address')] = clientData[clients.columnIndex(clientColumnMetadata.landlordAddressColName)];
-    match[matches.columnIndex('Case Number')] = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
-    let nextCourtDate = clientData[clients.columnIndex(clientColumnMetadata.courtDateColName)];
-    if (isUnknownDate(nextCourtDate)) {
-      nextCourtDate = 'Unknown';
-    }
-    match[matches.columnIndex('Next Court Date')] = nextCourtDate;
+    this.copyFromClientList(match, matches, clientData);
     match[matches.columnIndex('Match Status')] = '';
     match[matches.columnIndex('Pending Timestamp')] = '';
     return match;
@@ -233,6 +219,39 @@ class TheApp {
     this.cleanUpAvailabilities(availabilities, attorneys);
     availabilities.sortSheet('Type Rank', true);
     return availabilities;
+  }
+  copyFromClientList(targetData, targetSheet, clientData) {
+    targetData[targetSheet.columnIndex('Client First Name')] = clientData[clients.columnIndex(clientColumnMetadata.firstColName)];
+    targetData[targetSheet.columnIndex('Client Last Name')] = clientData[clients.columnIndex(clientColumnMetadata.lastColName)];
+    targetData[targetSheet.columnIndex('Client Email')] = clientData[clients.columnIndex(clientColumnMetadata.emailColName)];
+    targetData[targetSheet.columnIndex('Client Phone Number')] = clientData[clients.columnIndex(clientColumnMetadata.clientPhoneColName)];
+    targetData[targetSheet.columnIndex('Client Address')] = clientData[clients.columnIndex(clientColumnMetadata.clientAddressColName)];
+    targetData[targetSheet.columnIndex('Landlord Name')] = clientData[clients.columnIndex(clientColumnMetadata.landLordNameColName)];
+    targetData[targetSheet.columnIndex('Landlord Email')] = clientData[clients.columnIndex(clientColumnMetadata.landlordEmailColName)];
+    targetData[targetSheet.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex(clientColumnMetadata.landlordPhoneColName)]; 
+    targetData[targetSheet.columnIndex('Landlord Address')] = clientData[clients.columnIndex(clientColumnMetadata.landlordAddressColName)];
+    targetData[targetSheet.columnIndex('Case Number')] = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
+    let nextCourtDate = clientData[clients.columnIndex(clientColumnMetadata.courtDateColName)];
+    if (isUnknownDate(nextCourtDate)) {
+      nextCourtDate = 'Unknown';
+    }
+    targetData[targetSheet.columnIndex('Next Court Date')] = nextCourtDate;
+  }
+  createHotList(clientIndex, sortedClientArray) {
+    let columnHeaders = [
+      'Unique Id', 'Case Number',	'Next Court Date', 'Client First Name', 'Client Last Name',
+      'Client Email', 'Client Phone Number', 'Client Address', 'Landlord Name', 'Landlord Address',
+      'Landlord Email', 'Landlord Phone Number'	
+    ];
+    let hotList = new SheetClass('Hot List', null, columnHeaders);
+    let hotListRowNumber = 2;
+    for (; clientIndex < sortedClientArray.length; clientIndex++) {
+      let client = [];
+      let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
+      client[hotList.columnIndex('Unique Id')] = clientData[clients.columnIndex(clientColumnMetadata.uniqueIdColName)];
+      this.copyFromClientList(client, hotList, clientData);
+      hotList.setRowData(hotListRowNumber++, [client]);
+    }
   }
   doMatching() {
     let sortedClientArray = this.buildSortedClientArray(clients);
@@ -270,6 +289,7 @@ class TheApp {
         availabilities.setCellData(availabilityIndex, this.availabilityColHeader, --availabilityData[availabilityColIndex]);
       }
     }
+    this.createHotList(clientIndex, sortedClientArray);
     nextMatchIndex -= 2;
     let leftOver = sortedClientArray.length - nextMatchIndex;
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';

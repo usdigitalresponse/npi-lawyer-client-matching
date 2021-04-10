@@ -1,15 +1,21 @@
 const maxColumns = 200;
 class SheetClass {
-  constructor(name, workbookId) {
+  constructor(name, workbookId, columnHeaders) {
     this.name = name;
     if (workbookId) {
       this.sheet = SpreadsheetApp.openById(workbookId).getSheetByName(name);
     } else {
       this.sheet = SpreadsheetApp.getActive().getSheetByName(name);
     }
-    this.findLastColumnHeader();
-    let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
-    this.headerData = headerRange.getValues();
+    if (columnHeaders) {
+      this.lastColumn = this.columnLetterFromIndex(columnHeaders.length - 1);
+      this.setRowData(1, [columnHeaders]);
+      this.headerData = [columnHeaders];
+    } else {
+      this.findLastColumnHeader();
+      let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
+      this.headerData = headerRange.getValues();
+    }
   }
   removeEmptyCells(rowData) {
     let i;
