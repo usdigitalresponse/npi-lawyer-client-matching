@@ -11,16 +11,16 @@ class ClientColumnMetadata {
       this.programEligibilityColName = 'Program Eligibility ' + lineSep + 'auto';
       this.caseNumberColName = 'Case Number' + lineSep + 'auto';
       this.firstColName = 'First' + lineSep + 'auto';
-      this.lastColName = 'First' + lineSep + 'auto';
+      this.lastColName = 'Last' + lineSep + 'auto';
       this.emailColName = 'Email' + lineSep + 'auto';
       this.uniqueIdColName = 'Unique ID' + lineSep + 'auto';
       this.clientPhoneColName = 'Phone' + lineSep + 'auto';
       this.folderColName = 'Folder' + lineSep + 'auto';
       this.clientAddressColName = 'Address'  + lineSep + 'auto';
-      this.landLordNameColName = 'Folder' + lineSep + 'auto';
-      this.landlordEmailColName = 'Landlord Email'  + lineSep + 'auto';
-      this.landlordPhoneColName = 'Landlord Phone'  + lineSep + 'auto';
-      this.landlordAddressColName = 'Landlord Address'  + lineSep + 'auto';
+      this.landLordNameColName = 'Landlord Name - Clean' + lineSep + 'auto-de-duped';
+      this.landlordEmailColName = 'Landlord Email' + lineSep + 'auto';
+      this.landlordPhoneColName = 'Landlord Phone' + lineSep + 'auto';
+      this.landlordAddressColName = 'Landlord Address' + lineSep + 'auto';
       this.landlordPaymentStatus = null;
       this.uuidColumnName = 'Unique ID' + lineSep + 'auto';
     } else {
@@ -35,7 +35,7 @@ class ClientColumnMetadata {
       this.clientPhoneColName = 'Phone';
       this.folderColName = 'Folder';
       this.clientAddressColName = 'Tenant Address';
-      this.landLordNameColName = 'Folder';
+      this.landLordNameColName = 'Landlord Name';
       this.landlordEmailColName = 'Landlord Email';
       this.landlordPhoneColName = 'Landlord Phone';
       this.landlordAddressColName = 'Landlord Address';
