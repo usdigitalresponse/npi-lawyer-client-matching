@@ -296,10 +296,14 @@ class TheApp {
     logger.logAndAlert('Info', msg);
   }
   performMatching() {
-    clients.cloneSheet(clientColumnMetadata.currentVersion, 'Client List');
-    doMatching();
+    try {
+      clients.cloneSheet(clientColumnMetadata.currentVersion, 'Client List');
+      doMatching();
+    } catch(err) {
+      logger.logAndAlert('performMatching: catch: ', err);
+    }
   }
-  emailLawyers() {
+  doEmailLawyers() {
     let d = new Date();
     let newCaseCount = 0;
     let emailedMatches = new SheetClass('Emailed Matches');
@@ -334,6 +338,13 @@ class TheApp {
       newCaseCount++;
     }
     logger.logAndAlert('Info', 'Emailed ' + newCaseCount + ' new cases.');
+  }
+  emailLawyers() {
+    try {
+      this.doEmailLawyers();
+    } catch(err) {
+      logger.logAndAlert('emailLawyers: catch: ', err);
+    }
   }
 }
 

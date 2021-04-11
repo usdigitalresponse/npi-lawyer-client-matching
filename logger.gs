@@ -45,8 +45,10 @@ class Logger {
   }
   showAlert(title, msg) {
     try {
-      showOKAlert(title, msg);
+      let ui = SpreadsheetApp.getUi();
+      ui.alert(title, msg, ui.ButtonSet.OK);
     } catch(err) {
+      this.writeLogLine(['showAlert catch', err]);
       console.log(title + ': ' + msg);
     }
   }
