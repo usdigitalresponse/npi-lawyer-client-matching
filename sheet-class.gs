@@ -192,6 +192,7 @@ class SheetClass {
     this.sheet.clear({contentsOnly: true});
     this.hackTime(sData);
     this.sheet.getRange(rangeSpec).setValues(sData);
+    return this;
   }
   copyFrom(sourceSheetName, sourceRange) {
     let sourceSheet = SpreadsheetApp.getActive().getSheetByName(sourceSheetName);

@@ -8,7 +8,7 @@ function onOpen() {
 
 var logger = new Logger();
 
-var clients = new SheetClass('Clients Raw');
+var clients = (new SheetClass('Clients Raw')).cloneSheet(clientColumnMetadata.currentVersion, 'Client List');
 var lineSep = String.fromCharCode(10);
 
 function isUnknownDate(dateInput) {
@@ -297,7 +297,6 @@ class TheApp {
   }
   performMatching() {
     try {
-      clients.cloneSheet(clientColumnMetadata.currentVersion, 'Client List');
       doMatching();
     } catch(err) {
       logger.logAndAlert('performMatching: catch: ', err);
