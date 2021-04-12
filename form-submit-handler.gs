@@ -11,8 +11,8 @@ class OnSubmitHandler {
   }
   findEmailedMatch(emailedMatches, attorneyClientId) {
     let names = attorneyClientId.split(' - ');
-    let attorneyName = names[0];
-    let clientName = names[1];
+    let attorneyName = names[0].trim();
+    let clientName = names[1].trim();
     let iter = new SheetRowIterator(emailedMatches);
     let rowData;
     while (rowData = iter.getNextRow()) {
@@ -20,10 +20,10 @@ class OnSubmitHandler {
       // This code introduces a slight possiblity for a mismatch if names are similar,
       // but we have to live with it.
       // Would be better (if ever possible) to use court case number for the key, which should be unique.
-      if (attorneyName.startsWith(rowData[emailedMatches.columnIndex('Lawyer First Name')]) &&
-          attorneyName.endsWith(rowData[emailedMatches.columnIndex('Lawyer Last Name')]) &&
-          clientName.startsWith(rowData[emailedMatches.columnIndex('Client First Name')]) &&
-          clientName.endsWith(rowData[emailedMatches.columnIndex('Client Last Name')])) {
+      if (attorneyName.startsWith(rowData[emailedMatches.columnIndex('Lawyer First Name')].trim()) &&
+          attorneyName.endsWith(rowData[emailedMatches.columnIndex('Lawyer Last Name')].trim()) &&
+          clientName.startsWith(rowData[emailedMatches.columnIndex('Client First Name')].trim()) &&
+          clientName.endsWith(rowData[emailedMatches.columnIndex('Client Last Name')].trim())) {
         return iter.nextIndex - 1;
       }
     }
