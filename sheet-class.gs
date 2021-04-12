@@ -148,49 +148,16 @@ class SheetClass {
       range.deleteCells(SpreadsheetApp.Dimension.ROWS);
     }
   }
-  hackTime(sData) {
-    if (this.name === 'Clients Raw') {
-      let headerRow = sData[0];
-      let nextCourtDateIndex = headerRow.indexOf(clientColumnMetadata.courtDateColName);
-      if (nextCourtDateIndex === -1) {
-        console.log('Unable to find column named: ' + clientColumnMetadata.courtDateColName + '. Court dates may be off.');
-        return;
-      }
-      let uniqueIdIndex = headerRow.indexOf(clientColumnMetadata.uuidColumnName);
-      if (uniqueIdIndex === -1) {
-        console.log('Unable to find column named: ' + clientColumnMetadata.uuidColumnName + '. Court dates may be off.');
-        return;
-      }
-      for (let rowIndex = 1; rowIndex < sData.length; rowIndex++) {
-        if (!sData[rowIndex][uniqueIdIndex]) {
-            // Empty dropdowns in a sheet return non-null data,
-            // so use the 'key' column to determine actual number of rows.
-          break; 
-        }
-        let strangeDate = sData[rowIndex][nextCourtDateIndex];
-        if (strangeDate !== 0) {
-          try {
-            strangeDate.setHours(12);
-          } catch (err) {
-            let rowNumber = rowIndex + 1;
-            if (strangeDate !== '') {
-              console.log('Bad date from eviction sheet at column "' + clientColumnMetadata.nextCourtDateColumn +
-                    '", row ' + rowNumber + ': "' + strangeDate + '"');
-            }
-          }
-        }
-        sData[rowIndex][nextCourtDateIndex] = strangeDate;
-      }
-    }
-  }
-  cloneSheet(sourceId, sourceSheetName) {
+  cloneSheet(sourceId, sourceSheetName, hackData) {
     let sourceWorkbook = SpreadsheetApp.openById(sourceId);
     let sourceSheet = sourceWorkbook.getSheetByName(sourceSheetName);
     let fullRange = sourceSheet.getDataRange();
     let rangeSpec = fullRange.getA1Notation();
     let sData = fullRange.getValues();
     this.sheet.clear({contentsOnly: true});
-    this.hackTime(sData);
+    if (hackData) {
+      hackData(sData);
+    }
     this.sheet.getRange(rangeSpec).setValues(sData);
     return this;
   }

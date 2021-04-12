@@ -8,11 +8,45 @@ function onOpen() {
 
 var logger = new Logger();
 
-var clients = (new SheetClass('Clients Raw')).cloneSheet(clientColumnMetadata.currentVersion, 'Client List');
+const UNKNOWN_COURT_DATE = 0;
+function hackTime(sData) {
+  let headerRow = sData[0];
+  let nextCourtDateIndex = headerRow.indexOf(clientColumnMetadata.courtDateColName);
+  if (nextCourtDateIndex === -1) {
+    console.log('Unable to find column named: ' + clientColumnMetadata.courtDateColName + '. Court dates may be off.');
+    return;
+  }
+  let uniqueIdIndex = headerRow.indexOf(clientColumnMetadata.uuidColumnName);
+  if (uniqueIdIndex === -1) {
+    console.log('Unable to find column named: ' + clientColumnMetadata.uuidColumnName + '. Court dates may be off.');
+    return;
+  }
+  for (let rowIndex = 1; rowIndex < sData.length; rowIndex++) {
+    if (!sData[rowIndex][uniqueIdIndex]) {
+        // Empty dropdowns in a sheet return non-null data,
+        // so use the 'key' column to determine actual number of rows.
+      break;
+    }
+    let strangeDate = sData[rowIndex][nextCourtDateIndex];
+    if (strangeDate !== UNKNOWN_COURT_DATE) {
+      try {
+        strangeDate.setHours(12);
+      } catch (err) {
+        let rowNumber = rowIndex + 1;
+        if (strangeDate !== '') {
+          console.log('Bad date from eviction sheet at column "' + clientColumnMetadata.nextCourtDateColumn +
+                '", row ' + rowNumber + ': "' + strangeDate + '"');
+        }
+      }
+    }
+    sData[rowIndex][nextCourtDateIndex] = strangeDate;
+  }
+}
+
+var clients = null;
 var lineSep = String.fromCharCode(10);
 
 function isUnknownDate(dateInput) {
-  const UNKNOWN_COURT_DATE = 0;
   const CUTOFF_COURT_DATE = new Date('1900-01-01T00:00:00');
   if (dateInput === '') {
     return true;
@@ -267,6 +301,8 @@ class TheApp {
     }
   }
   doMatching() {
+    clients = (new SheetClass('Clients Raw')).
+                cloneSheet(clientColumnMetadata.currentVersion, 'Client List', hackTime);
     let t1 = new CodeTimer('buildSortedClientArray');
     let sortedClientArray = this.buildSortedClientArray(clients);
     t1.done('pre-match');
