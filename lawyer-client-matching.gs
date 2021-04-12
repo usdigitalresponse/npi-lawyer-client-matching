@@ -50,6 +50,19 @@ function compareByCourtDate(firstElement, secondElement) {
   return 0;  
 }
 
+class CodeTimer {
+  constructor(name) {
+    this.name = name;
+    this.start = new Date();
+  }
+  done(newName) {
+    let interval = ((new Date()) - this.start) / 1000;
+    console.log(this.name + ' took ' + interval + ' seconds.');
+    this.name = newName;
+    this.start = new Date();
+  }
+}
+
 class TheApp {
   constructor() {
     this.availabilityColHeader = 'How many cases can you take on this week?';
@@ -254,7 +267,10 @@ class TheApp {
     }
   }
   doMatching() {
+    let t1 = new CodeTimer('buildSortedClientArray');
     let sortedClientArray = this.buildSortedClientArray(clients);
+    t1.done('pre-match');
+
     if (sortedClientArray.length === 0) {
       let msg = 'No clients found with "Clerk Confirmation" set to "Yes", ' +
                 'blank "Match Status" and "Program Eligibility" set to "Verified eligible"';
@@ -273,6 +289,7 @@ class TheApp {
     let availabilityIndex = 2;
     let d = new Date();
     let clientIndex;
+    t1.done('match');
     for (clientIndex = 0; clientIndex < sortedClientArray.length; clientIndex++) {
       availabilityIndex = this.getAvailablityIndex(availabilityIndex, lastAvailabilitiesIndex, availabilities);
       if (availabilityIndex < 0) {
@@ -289,10 +306,12 @@ class TheApp {
         availabilities.setCellData(availabilityIndex, this.availabilityColHeader, --availabilityData[availabilityColIndex]);
       }
     }
+    t1.done('hotlist');
     this.createHotList(clientIndex, sortedClientArray);
     nextMatchIndex -= 2;
     let leftOver = sortedClientArray.length - nextMatchIndex;
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';
+    t1.done('end');
     logger.logAndAlert('Info', msg);
   }
   performMatching() {
