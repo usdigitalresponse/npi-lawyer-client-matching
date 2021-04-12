@@ -52,7 +52,6 @@ class OnSubmitHandler {
   }
   handleSubmit(e) {
     try {
-      // Works ONLY as long as there is only one trigger.
       let caseId = '';
       let answer = ''
       let itemResponses = e.response.getItemResponses();
@@ -67,15 +66,14 @@ class OnSubmitHandler {
             { this.writeLogLine('Unknown itemResponse.getItem().getTitle(): ' + itemResponse.getItem().getTitle()); }
         }
       }
-      if (answer === 'Yes, I am available and have no conflict') {
-        this.updateConfirmed(caseId, answer);
-      }
+      this.updateConfirmed(caseId, answer);
     } catch(e) {
       this.writeLogLine('handleSubmit catch: ' + e);
     }
   }
 }
 function onSubmitForm(e) {
+      // Works ONLY as long as there is only one trigger.
   let onSubmitHandler = new OnSubmitHandler();
   onSubmitHandler.handleSubmit(e);
 }
