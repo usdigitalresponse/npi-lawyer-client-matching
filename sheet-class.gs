@@ -84,6 +84,11 @@ class SheetClass {
     let range = this.sheet.getRange('A' + rowNumber + ':' + this.lastColumn + rowNumber);
     range.setValues(data);
   }
+  setMultipleRows(rowNumber, data) {
+    let lastRow = rowNumber + data.length - 1;
+    let range = this.sheet.getRange('A' + rowNumber + ':' + this.lastColumn + lastRow);
+    range.setValues(data);
+  }
   columnIndexFromLetter(colId) {
     let highOrderVal = 0;
     let lowOrderIndex = 0;

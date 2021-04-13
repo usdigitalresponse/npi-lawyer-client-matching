@@ -61,7 +61,7 @@ class Logger {
     console.log(data);
   }
   logAndAlert(title, msg) {
-    this.showAlert(title, msg);
     this.writeLogLine([title, msg]);
+    this.showAlert(title, msg);
   }
 }

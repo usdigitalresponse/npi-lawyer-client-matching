@@ -291,19 +291,21 @@ class TheApp {
       'Landlord Email', 'Landlord Phone Number'	
     ];
     let hotList = new SheetClass('Hot List', null, columnHeaders);
-    let hotListRowNumber = 2;
+    let rowsData = [];
     for (; clientIndex < sortedClientArray.length; clientIndex++) {
       let client = [];
       let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
       client[hotList.columnIndex('Unique Id')] = clientData[clients.columnIndex(clientColumnMetadata.uniqueIdColName)];
       this.copyFromClientList(client, hotList, clientData);
-      hotList.setRowData(hotListRowNumber++, [client]);
+      rowsData.push(client);
     }
+    hotList.setMultipleRows(2, rowsData);
   }
   doMatching() {
+    let t1 = new CodeTimer('new SheetClass');
     clients = (new SheetClass('Clients Raw')).
                 cloneSheet(clientColumnMetadata.currentVersion, 'Client List', hackTime);
-    let t1 = new CodeTimer('buildSortedClientArray');
+    t1.done('buildSortedClientArray');
     let sortedClientArray = this.buildSortedClientArray(clients);
     t1.done('pre-match');
 
