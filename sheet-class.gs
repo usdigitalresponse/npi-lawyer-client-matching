@@ -173,12 +173,13 @@ class SheetClass {
     this.clear();
     this.sheet.getRange(sourceRange).setValues(sData);
   }
-  getAllRows() {
-    let ret = [];
-    for (let i = 0; i < this.getRowCount(); i++) {
-      ret.push(this.getRowData(i + 1)[0]);
+  getAllRows(keyColumnName) {
+    let rowCount = this.getRowCount2(keyColumnName);
+    if (rowCount > 1) {
+      let address = 'A2:' + this.lastColumn + rowCount;
+      return this.sheet.getRange(address).getValues();
     }
-    return ret;
+    return [];
   }
 }
 

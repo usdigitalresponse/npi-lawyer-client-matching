@@ -67,12 +67,13 @@ function handleUnknownDate(dateInput) {
   return dateInput;
 }
 
+var clientRows = null;
 function compareByCourtDate(firstElement, secondElement) {
   let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
-  let firstRow = clients.getRowData(firstElement);
-  let secondRow = clients.getRowData(secondElement);
-  let firstDate = firstRow[0][courtDateIndex];
-  let secondDate = secondRow[0][courtDateIndex];
+  let firstRow = clientRows[firstElement];
+  let secondRow = clientRows[secondElement];
+  let firstDate = firstRow[courtDateIndex];
+  let secondDate = secondRow[courtDateIndex];
   firstDate = handleUnknownDate(firstDate);
   secondDate = handleUnknownDate(secondDate);
   if (firstDate < secondDate) {
@@ -102,6 +103,7 @@ class TheApp {
     this.availabilityColHeader = 'How many cases can you take on this week?';
   }
   buildSortedClientArray(clients) {
+    let t = new CodeTimer('build client array');
     let indexArray = [];
     let confirmationIndex = clients.columnIndex('Clerk Confirmation' + lineSep + 'manual');
     let matchStatusIndex = clients.columnIndex('Match Status' + lineSep + ' auto - Pending, Confirmed, Denied' + lineSep + 'manual for Reassigned');
@@ -110,10 +112,10 @@ class TheApp {
     let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
     let bulkAgreementIndex = clients.columnIndex('Associated with Bulk Agreement?');
     let today = new Date();
-    let lastClientIndex = clients.getRowCount();
+    clientRows = clients.getAllRows(clientColumnMetadata.uniqueIdColName);
     let clientIndex;
-    for (clientIndex = 2; clientIndex <= lastClientIndex; clientIndex++) {
-      let clientData = clients.getRowData(clientIndex)[0];
+    for (clientIndex = 0; clientIndex < clientRows.length; clientIndex++) {
+      let clientData = clientRows[clientIndex];
       let nextCourtDate = clientData[courtDateIndex];
       let dateOK = (nextCourtDate >= today || isUnknownDate(nextCourtDate));
       let caseOpen = true;
@@ -131,7 +133,12 @@ class TheApp {
         }
       }
     }
+    t.done('sort');
     indexArray.sort(compareByCourtDate);
+    t.done('end');
+    for (let i = 0; i < indexArray.length; i++) {
+      indexArray[i] = indexArray[i] + 2;
+    }
     return indexArray;
   }
   cleanUpAvailabilities(availabilities, attorneys) {
