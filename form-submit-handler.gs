@@ -9,6 +9,13 @@ class OnSubmitHandler {
       console.log('OnSubmitHandler' + messageString);
     }
   }
+  deleteAwaitingConfirmation(attorneyClientId) {
+    let awaitingConfirmation = new SheetClass('Awaiting Confirmation', FormApp.getActiveForm().getDestinationId());
+    let rowNumber = awaitingConfirmation.lookupRowIndex('Attorney Name - Client Name', attorneyClientId) + 1;
+    if (rowNumber > 1) {
+      awaitingConfirmation.sheet.deleteRow(rowNumber);
+    }
+  }
   findEmailedMatch(emailedMatches, attorneyClientId) {
     let names = attorneyClientId.split(' - ');
     let attorneyName = names[0].trim();
@@ -50,6 +57,10 @@ class OnSubmitHandler {
     targetData[confirmedMatches.columnIndex('Do you accept the case?')] = answer;
     confirmedMatches.setRowData(confirmedMatches.getRowCount() + 1, [targetData]);
   }
+  doUpdate(caseId, answer) {
+    this.updateConfirmed(caseId, answer);
+    this.deleteAwaitingConfirmation(caseId);
+  }
   handleSubmit(e) {
     try {
       let caseId = '';
@@ -66,7 +77,7 @@ class OnSubmitHandler {
             { this.writeLogLine('Unknown itemResponse.getItem().getTitle(): ' + itemResponse.getItem().getTitle()); }
         }
       }
-      this.updateConfirmed(caseId, answer);
+      this.doUpdate(caseId, answer);
     } catch(e) {
       this.writeLogLine('handleSubmit catch: ' + e);
     }
