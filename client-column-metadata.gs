@@ -4,7 +4,7 @@ class ClientColumnMetadata {
     this.v1 = '1vnUVqjwj-u6Wn2v4rhBZN5qvfic6Pa7prLMMLGElBzo';
     this.v2 = '1npa0evM4ifsKzEYUXjgVOiy9dN0AAT2Shmov9bGsAJk';
     // Must manually copy/paste headers from source client sheet into 'Client Raw' tab when changing this.
-    this.currentVersion = this.v1;
+    this.currentVersion = this.v2;
     if (this.currentVersion === this.v1) {
       this.rentalApplicationStatusColName = 'Rental Assistance Application Status' + lineSep + 'auto & manual';
       this.courtDateColName = 'Court Date' + lineSep + 'auto';
