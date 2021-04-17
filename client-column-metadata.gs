@@ -39,7 +39,7 @@ class ClientColumnMetadata {
       this.landlordEmailColName = 'Landlord Email';
       this.landlordPhoneColName = 'Landlord Phone';
       this.landlordAddressColName = 'Landlord Address';
-      this.landlordPaymentStatus = 'Landlord Payment Status' + lineSep + 'manual';
+      this.landlordPaymentStatus = null; // 'Landlord Payment Status' + lineSep + 'manual';
       this.uuidColumnName = 'Unique ID';
     }
   }
