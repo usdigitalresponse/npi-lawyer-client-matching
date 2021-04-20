@@ -112,7 +112,7 @@ class TheApp {
     let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
     let bulkAgreementIndex = clients.columnIndex('Associated with Bulk Agreement?');
     let today = new Date();
-    clientRows = clients.getAllRows(clientColumnMetadata.uniqueIdColName);
+    clientRows = clients.getAllDataRows();
     let clientIndex;
     for (clientIndex = 0; clientIndex < clientRows.length; clientIndex++) {
       let clientData = clientRows[clientIndex];
@@ -136,9 +136,6 @@ class TheApp {
     t.done('sort');
     indexArray.sort(compareByCourtDate);
     t.done('end');
-    for (let i = 0; i < indexArray.length; i++) {
-      indexArray[i] = indexArray[i] + 2;
-    }
     return indexArray;
   }
   cleanUpAvailabilities(availabilities, attorneys) {
@@ -217,7 +214,7 @@ class TheApp {
     return availabilityIndex;
   }
   clientCanMatch(clientIndex, sortedClientArray, emailedMatches, availabilities, availabilityData, attorneys) {
-    let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
+    let clientData = clientRows[sortedClientArray[clientIndex]];
     let caseNumber = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
     if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
       let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
@@ -293,16 +290,18 @@ class TheApp {
   }
   createHotList(clientIndex, sortedClientArray) {
     let columnHeaders = [
-      'Unique Id', 'Case Number',	'Next Court Date', 'Client First Name', 'Client Last Name',
+      'Tenant UID', 'Case Number',	'Next Court Date', 'Client First Name', 'Client Last Name',
       'Client Email', 'Client Phone Number', 'Client Address', 'Landlord Name', 'Landlord Address',
       'Landlord Email', 'Landlord Phone Number'	
     ];
     let hotList = new SheetClass('Hot List', null, columnHeaders);
     let rowsData = [];
+    let sourceColIndex = clients.columnIndex(clientColumnMetadata.uniqueIdColName);
+    let targetColIndex = hotList.columnIndex('Tenant UID');
     for (; clientIndex < sortedClientArray.length; clientIndex++) {
       let client = [];
-      let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
-      client[hotList.columnIndex('Unique Id')] = clientData[clients.columnIndex(clientColumnMetadata.uniqueIdColName)];
+      let clientData = clientRows[sortedClientArray[clientIndex]];
+      client[targetColIndex] = clientData[sourceColIndex];
       this.copyFromClientList(client, hotList, clientData);
       rowsData.push(client);
     }

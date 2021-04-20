@@ -59,17 +59,7 @@ class SheetClass {
     return this.headerData[0][columnIndex];
   }
   getRowCount() {
-    let count = 0;
-    // If this turns out to be a performance problem down the road,
-    // use the length of a 'key' column instead.
-    for (let colIndex = 0; colIndex < this.headerData[0].length; colIndex++) {
-      let colLetter = this.columnLetterFromIndex(colIndex);
-      let rangeSpec = colLetter + '1:' + colLetter;
-      let values = this.sheet.getRange(rangeSpec).getValues();
-      let numValues = values.filter(String).length;
-      count = Math.max(count, numValues);
-    }
-    return count;
+    return this.sheet.getLastRow();
   }
   getRowData(rowNumber) {
     let rangeSpec = 'A' + rowNumber + ':' + this.lastColumn + rowNumber;
@@ -136,18 +126,8 @@ class SheetClass {
     }
     return -1;
   }
-  getRowCount2(keyColumnName) {
-    let colLetter = this.columnLetterFromIndex(this.columnIndex(keyColumnName));
-    let rangeSpec = colLetter + '1:' + colLetter;
-    let values = this.sheet.getRange(rangeSpec).getValues();
-    let index = values.length - 1;
-    while ((!values[index][0] || values[index][0] === '') && index > 0) {
-      index--;
-    }
-    return index + 1;
-  }
-  clearData(keyColumnName) {
-    let rowCount = this.getRowCount2(keyColumnName);
+  clearData() {
+    let rowCount = this.getRowCount();
     if (rowCount > 1) {
       let address = 'A2:' + this.lastColumn + rowCount;
       let range = this.sheet.getRange(address);
@@ -174,8 +154,8 @@ class SheetClass {
     this.clear();
     this.sheet.getRange(sourceRange).setValues(sData);
   }
-  getAllRows(keyColumnName) {
-    let rowCount = this.getRowCount2(keyColumnName);
+  getAllDataRows() {
+    let rowCount = this.getRowCount();
     if (rowCount > 1) {
       let address = 'A2:' + this.lastColumn + rowCount;
       return this.sheet.getRange(address).getValues();
