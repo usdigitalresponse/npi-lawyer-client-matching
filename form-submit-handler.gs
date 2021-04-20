@@ -83,3 +83,8 @@ class OnSubmitHandler {
     }
   }
 }
+function onSubmitForm(e) {
+      // Works ONLY as long as there is only one trigger.
+  let onSubmitHandler = new OnSubmitHandler();
+  onSubmitHandler.handleSubmit(e);
+}
