@@ -83,36 +83,3 @@ class OnSubmitHandler {
     }
   }
 }
-function onSubmitForm(e) {
-      // Works ONLY as long as there is only one trigger.
-  let onSubmitHandler = new OnSubmitHandler();
-  onSubmitHandler.handleSubmit(e);
-}
-class DropDownLoader {
-  fillDropDown() {
-    const GOOGLE_SHEET_NAME = 'Awaiting Confirmation';
-    const COLUMN_NAME = 'Attorney Name - Client Name';
-    const workbook = SpreadsheetApp.openById(FormApp.getActiveForm().getDestinationId());
-
-    const [header, ...data] = workbook
-      .getSheetByName(GOOGLE_SHEET_NAME)
-      .getDataRange()
-      .getDisplayValues();
-
-    const choices = {};
-    header.forEach((title, i) => {
-      choices[title] = data.map((d) => d[i]).filter((e) => e);
-    });
-
-    let items = FormApp.getActiveForm().getItems();
-    for (let item of items) {
-      if (item.getTitle() === 'Case') {
-        item.asListItem().setChoiceValues(choices[COLUMN_NAME]);
-      }
-    }
-  }
-}
-//function onOpen() {
-//  let onOpenHandler = new DropDownLoader();
-//  onOpenHandler.fillDropDown();
-//}
