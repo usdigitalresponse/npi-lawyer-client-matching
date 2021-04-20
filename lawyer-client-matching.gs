@@ -16,9 +16,9 @@ function hackTime(sData) {
     console.log('Unable to find column named: ' + clientColumnMetadata.courtDateColName + '. Court dates may be off.');
     return;
   }
-  let uniqueIdIndex = headerRow.indexOf(clientColumnMetadata.uuidColumnName);
+  let uniqueIdIndex = headerRow.indexOf(clientColumnMetadata.uniqueIdColName);
   if (uniqueIdIndex === -1) {
-    console.log('Unable to find column named: ' + clientColumnMetadata.uuidColumnName + '. Court dates may be off.');
+    console.log('Unable to find column named: ' + clientColumnMetadata.uniqueIdColName + '. Court dates may be off.');
     return;
   }
   for (let rowIndex = 1; rowIndex < sData.length; rowIndex++) {
