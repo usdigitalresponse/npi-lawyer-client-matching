@@ -8,7 +8,7 @@ function onOpen() {
 
 var logger = new Logger();
 
-const UNKNOWN_COURT_DATE = 0;
+const UNKNOWN_COURT_DATE = 0; // NPI staffers (at some point in time) entered unknown court dates as zero.
 function hackTime(sData) {
   let headerRow = sData[0];
   let nextCourtDateIndex = headerRow.indexOf(clientColumnMetadata.courtDateColName);
@@ -47,7 +47,7 @@ var clients = null;
 var lineSep = String.fromCharCode(10);
 
 function isUnknownDate(dateInput) {
-  const CUTOFF_COURT_DATE = new Date('1900-01-01T00:00:00');
+  const CUTOFF_COURT_DATE = new Date('1900-01-01T00:00:00'); // UNKNOWN_COURT_DATE, when formatted as a date, shows a date in 1899.
   if (dateInput === '') {
     return true;
   }
@@ -67,7 +67,8 @@ function handleUnknownDate(dateInput) {
   return dateInput;
 }
 
-var clientRows = null;
+var clientRows = null; // Performance optimization: Read all client rows into memory to avoid lots of network calls.
+
 function compareByCourtDate(firstElement, secondElement) {
   let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
   let firstRow = clientRows[firstElement];
