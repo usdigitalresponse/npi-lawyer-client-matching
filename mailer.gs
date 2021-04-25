@@ -53,3 +53,17 @@ function askForAvailability() {
     (new Logger()).logAndAlert('function askForAvailability: catch: ', err);
   }
 }
+/* Enable and run only once after creating (or copying) Google Sheet.
+function createTrigger() {
+  try {
+    ScriptApp.newTrigger("askForAvailability")
+      .timeBased()
+      .atHour(14) // .atHour(8)
+      .onWeekDay(ScriptApp.WeekDay.SUNDAY) //.onWeekDay(ScriptApp.WeekDay.FRIDAY)
+      .inTimezone("America/Chicago")
+      .create();
+  } catch(err) {
+    (new Logger()).logAndAlert('function askForAvailability: catch: ', err);
+  }
+}
+*/
