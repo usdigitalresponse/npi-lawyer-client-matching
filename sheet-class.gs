@@ -71,6 +71,10 @@ class SheetClass {
       throw err;
     }
   }
+  getColumnData(columnName) {
+    let columnIndex = this.columnIndex(columnName);
+    return this.sheet.getRange(2, columnIndex + 1, this.getRowCount() - 1).getValues();
+  }
   setRowData(rowNumber, data) {
     let range = this.sheet.getRange('A' + rowNumber + ':' + this.lastColumn + rowNumber);
     range.setValues(data);
