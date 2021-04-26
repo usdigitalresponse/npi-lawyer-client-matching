@@ -27,22 +27,22 @@ class Mailer {
     for (let i = 0; i < arrayOfAddresses.length; i++) {
       flatArray.push(arrayOfAddresses[i][0]);
     }
-    this.send(['christopher@mscera.org'],
-              'Eviction Settlement Program (ESP) - Are you available to volunteer next week?',
-              this.availabilityBody);
-    let statusEmailAddresses = [/* 'steve@npimemphis.org' ,*/ 'christopher@mscera.org'];
-    this.send(statusEmailAddresses,
-              'Emailed ' + flatArray.length + ' attorneys asking for their availability',
-              '.');
-  }
-  send(arrayofAddresses, subject, body) {
-    for (let address of arrayofAddresses) {
+    const CHUNK_SIZE = 45; // leave room for up to 5 'to:' and 'cc:' addresses.
+    for (let i = 0; i < flatArray.length; i += CHUNK_SIZE) {
+      let temparray = flatArray.slice(i, i + CHUNK_SIZE);
       MailApp.sendEmail({
-        to: address,
-        subject: subject,
-        htmlBody: body
+        to: 'usdr@mscera.org',
+        bcc: temparray.join(','),
+        subject: 'Eviction Settlement Program (ESP) - Are you available to volunteer next week?',
+        htmlBody: this.availabilityBody
       });
     }
+    let statusEmailAddresses = 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org';
+    MailApp.sendEmail({
+      to: statusEmailAddresses,
+      subject: 'Emailed ' + flatArray.length + ' attorneys asking for their availability',
+      htmlBody: this.availabilityBody
+    });
   }
 }
 
@@ -53,13 +53,13 @@ function askForAvailability() {
     (new Logger()).logAndAlert('function askForAvailability: catch: ', err);
   }
 }
-/* Enable and run only once after creating (or copying) Google Sheet.
+/* Uncomment and run only *once* after creating (or copying) Google Sheet.
 function createTrigger() {
   try {
     ScriptApp.newTrigger("askForAvailability")
       .timeBased()
-      .atHour(14) // .atHour(8)
-      .onWeekDay(ScriptApp.WeekDay.SUNDAY) //.onWeekDay(ScriptApp.WeekDay.FRIDAY)
+      .atHour(8)
+      .onWeekDay(ScriptApp.WeekDay.WEDNESDAY)
       .inTimezone("America/Chicago")
       .create();
   } catch(err) {
