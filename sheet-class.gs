@@ -43,8 +43,7 @@ class SheetClass {
   columnIndex(columnName) {
     let index = this.headerData[0].indexOf(columnName);
     if (index < 0) {
-      let msg = 'No column named: "' + columnName + '" in sheet: "' + this.name +
-                '". Is it in https://docs.google.com/spreadsheets/d/' + clientColumnMetadata.currentVersion + '?';
+      let msg = 'No column named: "' + columnName + '" in sheet: "' + this.name + '".';
       logger.logAndAlert('Error', msg);
       throw msg;
     }

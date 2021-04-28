@@ -103,15 +103,25 @@ class TheApp {
   constructor() {
     this.availabilityColHeader = 'How many cases can you take on this week?';
   }
+  clientsColumnIndex(columnName) {
+    let index;
+    try {
+      index = clients.columnIndex(columnName);
+    } catch(e) {
+      e += ' Is it in https://docs.google.com/spreadsheets/d/' + clientColumnMetadata.currentVersion + '?';
+      throw e;
+    }
+    return index;
+  }
   buildSortedClientArray(clients) {
     let t = new CodeTimer('build client array');
     let indexArray = [];
-    let confirmationIndex = clients.columnIndex(clientColumnMetadata.clerkConfirmationColName);
-    let matchStatusIndex = clients.columnIndex(clientColumnMetadata.matchStatusColName);
-    let programEligibilityIndex = clients.columnIndex(clientColumnMetadata.programEligibilityColName);
-    let applicationStatusIndex = clients.columnIndex(clientColumnMetadata.rentalApplicationStatusColName);
-    let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
-    let bulkAgreementIndex = clients.columnIndex(clientColumnMetadata.bulkAgreementColName);
+    let confirmationIndex = this.clientsColumnIndex(clientColumnMetadata.clerkConfirmationColName);
+    let matchStatusIndex = this.clientsColumnIndex(clientColumnMetadata.matchStatusColName);
+    let programEligibilityIndex = this.clientsColumnIndex(clientColumnMetadata.programEligibilityColName);
+    let applicationStatusIndex = this.clientsColumnIndex(clientColumnMetadata.rentalApplicationStatusColName);
+    let courtDateIndex = this.clientsColumnIndex(clientColumnMetadata.courtDateColName);
+    let bulkAgreementIndex = this.clientsColumnIndex(clientColumnMetadata.bulkAgreementColName);
     let today = new Date();
     clientRows = clients.getAllDataRows();
     let clientIndex;
@@ -121,7 +131,7 @@ class TheApp {
       let dateOK = (nextCourtDate >= today || isUnknownDate(nextCourtDate));
       let caseOpen = true;
       if (clientColumnMetadata.landlordPaymentStatus) {
-        caseOpen = clientData[clients.columnIndex(clientColumnMetadata.landlordPaymentStatus)] === '';
+        caseOpen = clientData[this.clientsColumnIndex(clientColumnMetadata.landlordPaymentStatus)] === '';
       }
       if (dateOK &&
           caseOpen &&
@@ -216,7 +226,7 @@ class TheApp {
   }
   clientCanMatch(clientIndex, sortedClientArray, emailedMatches, availabilities, availabilityData, attorneys) {
     let clientData = clientRows[sortedClientArray[clientIndex]];
-    let caseNumber = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
+    let caseNumber = clientData[this.clientsColumnIndex(clientColumnMetadata.caseNumberColName)];
     if (emailedMatches.lookupRowIndex('Case Number', caseNumber) != -1) {
       let msg = 'Case: ' + caseNumber + ' has already been emailed, skipping it.';
       logger.writeLogLine([msg]);
@@ -241,8 +251,8 @@ class TheApp {
     match[matches.columnIndex('Lawyer First Name')] = lawyerNames[0];
     match[matches.columnIndex('Lawyer Last Name')] = lawyerNames[1];
     match[matches.columnIndex('Lawyer Email')] = attorneyData[attorneys.columnIndex('Email')];
-    match[matches.columnIndex('Client UUID')] = clientData[clients.columnIndex(clientColumnMetadata.uniqueIdColName)];
-    match[matches.columnIndex('Client Folder')] = clientData[clients.columnIndex(clientColumnMetadata.folderColName)];
+    match[matches.columnIndex('Client UUID')] = clientData[this.clientsColumnIndex(clientColumnMetadata.uniqueIdColName)];
+    match[matches.columnIndex('Client Folder')] = clientData[this.clientsColumnIndex(clientColumnMetadata.folderColName)];
     this.copyFromClientList(match, matches, clientData);
     match[matches.columnIndex('Match Status')] = '';
     match[matches.columnIndex('Pending Timestamp')] = '';
@@ -273,17 +283,17 @@ class TheApp {
     return availabilities;
   }
   copyFromClientList(targetData, targetSheet, clientData) {
-    targetData[targetSheet.columnIndex('Client First Name')] = clientData[clients.columnIndex(clientColumnMetadata.firstColName)];
-    targetData[targetSheet.columnIndex('Client Last Name')] = clientData[clients.columnIndex(clientColumnMetadata.lastColName)];
-    targetData[targetSheet.columnIndex('Client Email')] = clientData[clients.columnIndex(clientColumnMetadata.emailColName)];
-    targetData[targetSheet.columnIndex('Client Phone Number')] = clientData[clients.columnIndex(clientColumnMetadata.clientPhoneColName)];
-    targetData[targetSheet.columnIndex('Client Address')] = clientData[clients.columnIndex(clientColumnMetadata.clientAddressColName)];
-    targetData[targetSheet.columnIndex('Landlord Name')] = clientData[clients.columnIndex(clientColumnMetadata.landLordNameColName)];
-    targetData[targetSheet.columnIndex('Landlord Email')] = clientData[clients.columnIndex(clientColumnMetadata.landlordEmailColName)];
-    targetData[targetSheet.columnIndex('Landlord Phone Number')] = clientData[clients.columnIndex(clientColumnMetadata.landlordPhoneColName)]; 
-    targetData[targetSheet.columnIndex('Landlord Address')] = clientData[clients.columnIndex(clientColumnMetadata.landlordAddressColName)];
-    targetData[targetSheet.columnIndex('Case Number')] = clientData[clients.columnIndex(clientColumnMetadata.caseNumberColName)];
-    let nextCourtDate = clientData[clients.columnIndex(clientColumnMetadata.courtDateColName)];
+    targetData[targetSheet.columnIndex('Client First Name')] = clientData[this.clientsColumnIndex(clientColumnMetadata.firstColName)];
+    targetData[targetSheet.columnIndex('Client Last Name')] = clientData[this.clientsColumnIndex(clientColumnMetadata.lastColName)];
+    targetData[targetSheet.columnIndex('Client Email')] = clientData[this.clientsColumnIndex(clientColumnMetadata.emailColName)];
+    targetData[targetSheet.columnIndex('Client Phone Number')] = clientData[this.clientsColumnIndex(clientColumnMetadata.clientPhoneColName)];
+    targetData[targetSheet.columnIndex('Client Address')] = clientData[this.clientsColumnIndex(clientColumnMetadata.clientAddressColName)];
+    targetData[targetSheet.columnIndex('Landlord Name')] = clientData[this.clientsColumnIndex(clientColumnMetadata.landLordNameColName)];
+    targetData[targetSheet.columnIndex('Landlord Email')] = clientData[this.clientsColumnIndex(clientColumnMetadata.landlordEmailColName)];
+    targetData[targetSheet.columnIndex('Landlord Phone Number')] = clientData[this.clientsColumnIndex(clientColumnMetadata.landlordPhoneColName)]; 
+    targetData[targetSheet.columnIndex('Landlord Address')] = clientData[this.clientsColumnIndex(clientColumnMetadata.landlordAddressColName)];
+    targetData[targetSheet.columnIndex('Case Number')] = clientData[this.clientsColumnIndex(clientColumnMetadata.caseNumberColName)];
+    let nextCourtDate = clientData[this.clientsColumnIndex(clientColumnMetadata.courtDateColName)];
     if (isUnknownDate(nextCourtDate)) {
       nextCourtDate = 'Unknown';
     }
@@ -297,7 +307,7 @@ class TheApp {
     ];
     let hotList = new SheetClass('Hot List', null, columnHeaders);
     let rowsData = [];
-    let sourceColIndex = clients.columnIndex(clientColumnMetadata.uniqueIdColName);
+    let sourceColIndex = this.clientsColumnIndex(clientColumnMetadata.uniqueIdColName);
     let targetColIndex = hotList.columnIndex('Tenant UID');
     for (; clientIndex < sortedClientArray.length; clientIndex++) {
       let client = [];
