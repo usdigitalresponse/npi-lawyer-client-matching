@@ -106,12 +106,12 @@ class TheApp {
   buildSortedClientArray(clients) {
     let t = new CodeTimer('build client array');
     let indexArray = [];
-    let confirmationIndex = clients.columnIndex('Clerk Confirmation' + lineSep + 'manual');
-    let matchStatusIndex = clients.columnIndex('Match Status' + lineSep + ' auto - Pending, Confirmed, Denied' + lineSep + 'manual for Reassigned');
+    let confirmationIndex = clients.columnIndex(clientColumnMetadata.clerkConfirmationColName);
+    let matchStatusIndex = clients.columnIndex(clientColumnMetadata.matchStatusColName);
     let programEligibilityIndex = clients.columnIndex(clientColumnMetadata.programEligibilityColName);
     let applicationStatusIndex = clients.columnIndex(clientColumnMetadata.rentalApplicationStatusColName);
     let courtDateIndex = clients.columnIndex(clientColumnMetadata.courtDateColName);
-    let bulkAgreementIndex = clients.columnIndex('Associated with Bulk Agreement?');
+    let bulkAgreementIndex = clients.columnIndex(clientColumnMetadata.bulkAgreementColName);
     let today = new Date();
     clientRows = clients.getAllDataRows();
     let clientIndex;

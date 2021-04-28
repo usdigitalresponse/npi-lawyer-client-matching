@@ -17,7 +17,10 @@ class ClientColumnMetadata {
     this.landlordEmailColName = 'Landlord Email';
     this.landlordPhoneColName = 'Landlord Phone';
     this.landlordAddressColName = 'Landlord Address';
-    this.landlordPaymentStatus = null; // 'Landlord Payment Status' + lineSep + 'manual';
+    this.landlordPaymentStatus = null; // TODO: 'Landlord Payment Status' + lineSep + 'manual';
+    this.clerkConfirmationColName = 'Clerk Confirmation' + lineSep + 'manual';
+    this.matchStatusColName = 'Match Status' + lineSep + ' auto - Pending, Confirmed, Denied' + lineSep + 'manual for Reassigned';
+    this.bulkAgreementColName = 'Associated with Bulk Agreement?';
   }
 }
 
