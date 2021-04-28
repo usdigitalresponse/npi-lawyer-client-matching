@@ -425,3 +425,19 @@ theApp = new TheApp();
 function performMatching() { theApp.performMatching(); }
 function emailLawyers() { theApp.emailLawyers(); }
 function doMatching() { theApp.doMatching(); }
+function doAll() { performMatching(); emailLawyers(); }
+
+/* Uncomment and run only *once* after creating (or copying) Google Sheet.
+function createTrigger() {
+  try {
+    ScriptApp.newTrigger("doAll")
+      .timeBased()
+      .atHour(12)
+      .onWeekDay(ScriptApp.WeekDay.FRIDAY)
+      .inTimezone("America/Chicago")
+      .create();
+  } catch(err) {
+    (new Logger()).logAndAlert('function askForAvailability: catch: ', err);
+  }
+}
+*/
