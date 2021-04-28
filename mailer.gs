@@ -37,12 +37,14 @@ class Mailer {
         htmlBody: this.availabilityBody
       });
     }
+    let msg = 'Emailed ' + flatArray.length + ' attorneys asking for their availability';
     let statusEmailAddresses = 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org';
     MailApp.sendEmail({
       to: statusEmailAddresses,
-      subject: 'Emailed ' + flatArray.length + ' attorneys asking for their availability',
+      subject: msg,
       htmlBody: this.availabilityBody
     });
+    (new Logger()).writeLogLine([msg]);
   }
 }
 
