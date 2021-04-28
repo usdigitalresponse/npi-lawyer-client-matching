@@ -368,6 +368,14 @@ class TheApp {
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';
     t1.done('end');
     logger.logAndAlert('Info', msg);
+    this.sendStatusEmail(msg);
+  }
+  sendStatusEmail(msg) {
+    MailApp.sendEmail({
+      to: 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org',
+      subject: msg,
+      htmlBody: '.'
+    });
   }
   performMatching() {
     try {
@@ -410,7 +418,9 @@ class TheApp {
       nextEmailMatchIndex++;
       newCaseCount++;
     }
-    logger.logAndAlert('Info', 'Emailed ' + newCaseCount + ' new cases.');
+    let msg = 'Emailed ' + newCaseCount + ' new cases.';
+    logger.logAndAlert('Info', msg);
+    this.sendStatusEmail(msg);
   }
   emailLawyers() {
     try {
