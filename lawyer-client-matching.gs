@@ -99,6 +99,51 @@ class CodeTimer {
   }
 }
 
+class AirTableReader {
+  readFromTable() {
+    let apiKey = ''; // TODO: Have Steve generate one from his paid account.
+    let baseID = 'appYN8z5f60xC0XRE'; // TODO: Will be different between development and production versions.
+    let viewID = 'viw7JKuBTJOU8UAeO';
+    let tableName = 'Eviction Cases';
+    let recordOffset = 0;
+    let records = [];
+    while (recordOffset !== null) {	
+      let url = [
+        'https://api.airtable.com/v0/', baseID, '/', encodeURIComponent(tableName),
+        '?', 'api_key=', apiKey, '&view=', viewID, '&offset=', recordOffset
+      ].join('');
+      let response = JSON.parse(UrlFetchApp.fetch(url, {'method' : 'GET'}));
+      records.push.apply(records, response.records);
+      Utilities.sleep(300);       // Don't trigger Airtable rate limiting.
+      if (response.offset) {      // Airtable returns NULL if no more records.
+        recordOffset = response.offset;
+      } else {
+        recordOffset = null;
+      }
+    }
+    return records;
+  }
+  buildHeaders(records) {
+    var fieldNames = ["Record ID"];
+    for (var i = 0; i < records.length; i++){
+      for (var field in records[i].fields){
+        fieldNames.push(field);
+      }
+    }
+    // Remove duplicates.
+    fieldNames = fieldNames.filter(function(item, pos){
+      return fieldNames.indexOf(item) === pos;
+    });
+    return fieldNames;
+  }
+}
+function testAirtable() {
+  let airTableReader = new AirTableReader(); 
+  let records = airTableReader.readFromTable();
+  let fieldNames = airTableReader.buildHeaders(records);
+  console.log(fieldNames);
+}
+
 class TheApp {
   constructor() {
     this.availabilityColHeader = 'How many cases can you take on this week?';
@@ -372,7 +417,7 @@ class TheApp {
   }
   sendStatusEmail(msg) {
     MailApp.sendEmail({
-      to: 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org',
+      to: 'christopher@mscera.org', // ', usdr@mscera.org, steve@npimemphis.org'
       subject: msg,
       htmlBody: '.'
     });
