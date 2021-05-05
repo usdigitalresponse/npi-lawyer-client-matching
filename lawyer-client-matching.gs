@@ -102,15 +102,13 @@ class CodeTimer {
 class AirTableReader {
   readFromTable() {
     let apiKey = ''; // TODO: Have Steve generate one from his paid account.
-    let baseID = 'appYN8z5f60xC0XRE'; // TODO: Will be different between development and production versions.
-    let viewID = 'viw7JKuBTJOU8UAeO';
     let tableName = 'Eviction Cases';
     let recordOffset = 0;
     let records = [];
     while (recordOffset !== null) {	
       let url = [
-        'https://api.airtable.com/v0/', baseID, '/', encodeURIComponent(tableName),
-        '?', 'api_key=', apiKey, '&view=', viewID, '&offset=', recordOffset
+        'https://api.airtable.com/v0/', clientColumnMetadata.airtableBaseID, '/', encodeURIComponent(tableName),
+        '?', 'api_key=', apiKey, '&view=', clientColumnMetadata.airtableViewID, '&offset=', recordOffset
       ].join('');
       let response = JSON.parse(UrlFetchApp.fetch(url, {'method' : 'GET'}));
       records.push.apply(records, response.records);
@@ -124,9 +122,11 @@ class AirTableReader {
     return records;
   }
   buildHeaders(records) {
-    var fieldNames = ["Record ID"];
-    for (var i = 0; i < records.length; i++){
-      for (var field in records[i].fields){
+    let fieldNames = ["Record ID"];
+    let i;
+    for (i = 0; i < records.length; i++) {
+      let field;
+      for (field in records[i].fields){
         fieldNames.push(field);
       }
     }
@@ -136,12 +136,12 @@ class AirTableReader {
     });
     return fieldNames;
   }
-}
-function testAirtable() {
-  let airTableReader = new AirTableReader(); 
-  let records = airTableReader.readFromTable();
-  let fieldNames = airTableReader.buildHeaders(records);
-  console.log(fieldNames);
+  getRows() {
+    let records = this.readFromTable();
+    let fieldNames = this.buildHeaders(records);
+    records.unshift(fieldNames);
+    return records;
+  }
 }
 
 class TheApp {
