@@ -9,7 +9,7 @@ class ClientColumnMetadata {
     this.firstColName = 'First';
     this.lastColName = 'Last';
     this.emailColName = 'Email';
-    this.uniqueIdColName = 'Tenant UID';
+    this.uniqueIdColName = 'Unique ID';
     this.clientPhoneColName = 'Phone';
     this.folderColName = 'Folder';
     this.clientAddressColName = 'Tenant Address';
