@@ -11,11 +11,11 @@ class ClientColumnMetadata {
       this.currentVersion = null;
       this.courtDateColName = 'Confirmed Court Date';
       this.caseNumberColName = 'Confirmed Case Number';
-      this.uniqueIdColName = 'Client Application';
+      this.uniqueIdColName = 'UID';
       this.landlordPaymentStatus = 'Landlord Payment Status';
       this.clerkConfirmationColName = 'Clerk Confirmation';
       this.matchStatusColName = 'Match Status';
-      this.bulkAgreementColName = 'Bulk Agreement';
+      this.bulkAgreementColName = 'Bulk agreement';
     } else {
       this.currentVersion = '1npa0evM4ifsKzEYUXjgVOiy9dN0AAT2Shmov9bGsAJk'; // v2
       this.courtDateColName = 'Confirmed Court Date' + lineSep + 'manual';

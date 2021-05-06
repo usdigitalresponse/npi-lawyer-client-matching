@@ -104,14 +104,46 @@ class AirTableReader {
     let apiKey = ''; // TODO: Have Steve generate one from his paid account.
     let tableName = 'Eviction Cases';
     let recordOffset = 0;
-    let records = [];
+    let header = [
+      clientColumnMetadata.uniqueIdColName,
+      clientColumnMetadata.firstColName,
+      clientColumnMetadata.lastColName,
+      clientColumnMetadata.emailColName,
+      clientColumnMetadata.clientPhoneColName,
+      clientColumnMetadata.clientAddressColName,
+      clientColumnMetadata.folderColName,
+      clientColumnMetadata.landLordNameColName,
+      clientColumnMetadata.landlordEmailColName,
+      clientColumnMetadata.landlordPhoneColName,
+      clientColumnMetadata.landlordAddressColName,
+      clientColumnMetadata.landlordPaymentStatus,
+      clientColumnMetadata.courtDateColName,
+      clientColumnMetadata.caseNumberColName,
+      clientColumnMetadata.clerkConfirmationColName,
+      clientColumnMetadata.matchStatusColName,
+      clientColumnMetadata.bulkAgreementColName,
+      clientColumnMetadata.rentalApplicationStatusColName,
+      clientColumnMetadata.programEligibilityColName
+    ];
+    let records = [header];
     while (recordOffset !== null) {	
       let url = [
         'https://api.airtable.com/v0/', clientColumnMetadata.airtableBaseID, '/', encodeURIComponent(tableName),
         '?', 'api_key=', apiKey, '&view=', clientColumnMetadata.airtableViewID, '&offset=', recordOffset
       ].join('');
       let response = JSON.parse(UrlFetchApp.fetch(url, {'method' : 'GET'}));
-      records.push.apply(records, response.records);
+      for (let value1 of response.records.values()) {
+        let rowRecord = Array(header.length).fill("");
+        for (let propt in value1.fields) {
+          let i = header.indexOf(propt);
+          if (i > -1) {
+            rowRecord[i] = value1.fields[propt][0];
+          }
+        }
+        if (rowRecord[header.indexOf(clientColumnMetadata.uniqueIdColName)] !== '') {
+          records.push(rowRecord);
+        }
+      }
       Utilities.sleep(300);       // Don't trigger Airtable rate limiting.
       if (response.offset) {      // Airtable returns NULL if no more records.
         recordOffset = response.offset;
@@ -121,27 +153,9 @@ class AirTableReader {
     }
     return records;
   }
-  buildHeaders(records) {
-    let fieldNames = ["Record ID"];
-    let i;
-    for (i = 0; i < records.length; i++) {
-      let field;
-      for (field in records[i].fields){
-        fieldNames.push(field);
-      }
-    }
-    // Remove duplicates.
-    fieldNames = fieldNames.filter(function(item, pos){
-      return fieldNames.indexOf(item) === pos;
-    });
-    return fieldNames;
-  }
-  getRows() {
-    let records = this.readFromTable();
-    let fieldNames = this.buildHeaders(records);
-    records.unshift(fieldNames);
-    return records;
-  }
+}
+function testA() {
+  (new AirTableReader()).readFromTable();
 }
 
 class TheApp {
@@ -417,7 +431,7 @@ class TheApp {
   }
   sendStatusEmail(msg) {
     MailApp.sendEmail({
-      to: 'christopher@mscera.org', // ', usdr@mscera.org, steve@npimemphis.org'
+      to: 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org',
       subject: msg,
       htmlBody: '.'
     });
