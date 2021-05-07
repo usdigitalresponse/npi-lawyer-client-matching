@@ -13,7 +13,8 @@ class SheetClass {
       this.headerData = [columnHeaders];
     } else {
       this.findLastColumnHeader();
-      let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
+      let rangeSpec = 'A1:' + this.lastColumn + '1';
+      let headerRange = this.sheet.getRange(rangeSpec);
       this.headerData = headerRange.getValues();
     }
   }
@@ -81,6 +82,14 @@ class SheetClass {
   setMultipleRows(rowNumber, data) {
     let lastRow = rowNumber + data.length - 1;
     let range = this.sheet.getRange('A' + rowNumber + ':' + this.lastColumn + lastRow);
+    range.setValues(data);
+  }
+  load(data) {
+    let lastRow = data.length;
+    this.headers = [data[0]];
+    this.lastColumn = this.columnLetterFromIndex(headers[0].length - 1);
+    let rangeSpec = 'A1' + ':' + this.lastColumn + lastRow;
+    let range = this.sheet.getRange(rangeSpec);
     range.setValues(data);
   }
   columnIndexFromLetter(colId) {

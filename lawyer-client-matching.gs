@@ -101,7 +101,7 @@ class CodeTimer {
 
 class AirTableReader {
   readFromTable() {
-    let apiKey = ''; // TODO: Have Steve generate one from his paid account.
+    let apiKey = '';
     let tableName = 'Eviction Cases';
     let recordOffset = 0;
     let header = [
@@ -155,7 +155,8 @@ class AirTableReader {
   }
 }
 function testA() {
-  (new AirTableReader()).readFromTable();
+  records = (new AirTableReader()).readFromTable();
+  console.log(records.length);
 }
 
 class TheApp {
