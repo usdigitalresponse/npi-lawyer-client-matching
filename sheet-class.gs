@@ -16,7 +16,8 @@ class SheetClass {
       if (this.lastColumn < 'A') {
         throw 'No headers in sheet named: ' + this.name;
       }
-      let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
+      let rangeSpec = 'A1:' + this.lastColumn + '1';
+      let headerRange = this.sheet.getRange(rangeSpec);
       this.headerData = headerRange.getValues();
     }
   }
@@ -89,7 +90,7 @@ class SheetClass {
   load(data) {
     let lastRow = data.length;
     this.headers = [data[0]];
-    this.lastColumn = this.columnLetterFromIndex(headers[0].length - 1);
+    this.lastColumn = this.columnLetterFromIndex(this.headers[0].length - 1);
     let rangeSpec = 'A1' + ':' + this.lastColumn + lastRow;
     let range = this.sheet.getRange(rangeSpec);
     range.setValues(data);
