@@ -101,9 +101,8 @@ class CodeTimer {
 
 class AirTableReader {
   readFromTable() {
-    let apiKey = '';
+    let apiKey = 'keyqD8v8a4PwAAWKt';
     let tableName = 'Eviction Cases';
-    let recordOffset = 0;
     let header = [
       clientColumnMetadata.uniqueIdColName,
       clientColumnMetadata.firstColName,
@@ -126,6 +125,7 @@ class AirTableReader {
       clientColumnMetadata.programEligibilityColName
     ];
     let records = [header];
+    let recordOffset = 0;
     while (recordOffset !== null) {	
       let url = [
         'https://api.airtable.com/v0/', clientColumnMetadata.airtableBaseID, '/', encodeURIComponent(tableName),
@@ -153,10 +153,6 @@ class AirTableReader {
     }
     return records;
   }
-}
-function testA() {
-  records = (new AirTableReader()).readFromTable();
-  console.log(records.length);
 }
 
 class TheApp {
@@ -380,14 +376,19 @@ class TheApp {
   }
   doMatching() {
     let t1 = new CodeTimer('new SheetClass');
-    clients = (new SheetClass('Clients Raw')).
-                cloneSheet(clientColumnMetadata.currentVersion, 'Client List', hackTime);
+    clients = new SheetClass('Clients Raw');
+    if (clientColumnMetadata.airtableBaseID) {
+      clients.load((new AirTableReader().readFromTable()));
+    } else {
+      clients.cloneSheet(clientColumnMetadata.currentVersion, 'Client List', hackTime);
+    }
     t1.done('buildSortedClientArray');
     let sortedClientArray = this.buildSortedClientArray(clients);
     t1.done('pre-match');
 
     if (sortedClientArray.length === 0) {
-      let msg = 'No clients found that can be matched.';
+      let totalClients = clients.getRowCount() - 1;
+      let msg = 'No clients found that can be matched (out of ' + totalClients  + ' total).';
       logger.logAndAlert('Warning', msg);
       return;
     }
