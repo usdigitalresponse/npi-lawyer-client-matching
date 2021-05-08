@@ -101,7 +101,7 @@ class CodeTimer {
 
 class AirTableReader {
   readFromTable() {
-    let apiKey = 'keyqD8v8a4PwAAWKt';
+    let apiKey = '';
     let tableName = 'Eviction Cases';
     let header = [
       clientColumnMetadata.uniqueIdColName,
