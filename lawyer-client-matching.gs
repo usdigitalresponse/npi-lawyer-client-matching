@@ -9,6 +9,19 @@ function onOpen() {
 var logger = new Logger();
 
 const UNKNOWN_COURT_DATE = 0; // NPI staffers (at some point in time) entered unknown court dates as zero.
+function isUnknownDate(dateInput) {
+  const CUTOFF_COURT_DATE = new Date('1900-01-01T00:00:00'); // UNKNOWN_COURT_DATE, when formatted as a date, shows a date in 1899.
+  if (dateInput === '') {
+    return true;
+  }
+  if (dateInput === UNKNOWN_COURT_DATE) {
+    return true;
+  }
+  if (dateInput < CUTOFF_COURT_DATE) {
+    return true;
+  }
+  return false;
+}
 function hackTime(sData) {
   let headerRow = sData[0];
   let nextCourtDateIndex = headerRow.indexOf(clientColumnMetadata.courtDateColName);
@@ -28,7 +41,7 @@ function hackTime(sData) {
       break;
     }
     let strangeDate = sData[rowIndex][nextCourtDateIndex];
-    if (strangeDate !== UNKNOWN_COURT_DATE) {
+    if (!isUnknownDate(strangeDate)) {
       try {
         strangeDate.setHours(12);
       } catch (err) {
@@ -46,19 +59,6 @@ function hackTime(sData) {
 var clients = null;
 var lineSep = String.fromCharCode(10);
 
-function isUnknownDate(dateInput) {
-  const CUTOFF_COURT_DATE = new Date('1900-01-01T00:00:00'); // UNKNOWN_COURT_DATE, when formatted as a date, shows a date in 1899.
-  if (dateInput === '') {
-    return true;
-  }
-  if (dateInput === UNKNOWN_COURT_DATE) {
-    return true;
-  }
-  if (dateInput < CUTOFF_COURT_DATE) {
-    return true;
-  }
-  return false;
-}
 function handleUnknownDate(dateInput) {
   const MAX_DATE = new Date(8640000000000000);
   if (isUnknownDate(dateInput)) {
@@ -387,8 +387,7 @@ class TheApp {
     t1.done('pre-match');
 
     if (sortedClientArray.length === 0) {
-      let msg = 'No clients found with "Clerk Confirmation" set to "Yes", ' +
-                'blank "Match Status" and "Program Eligibility" set to "Verified eligible"';
+      let msg = 'No clients found that can be matched.';
       logger.logAndAlert('Warning', msg);
       return;
     }
@@ -400,6 +399,11 @@ class TheApp {
     matches.clearData('Case Number');
 
     let lastAvailabilitiesIndex = availabilities.getRowCount();
+    if (lastAvailabilitiesIndex < 2) {
+      let msg = 'No attorneys found to match to.';
+      logger.logAndAlert('Warning', msg);
+      return;
+    }
     let nextMatchIndex = 2;
     let availabilityIndex = 2;
     let d = new Date();

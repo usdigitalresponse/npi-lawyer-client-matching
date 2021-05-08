@@ -13,8 +13,10 @@ class SheetClass {
       this.headerData = [columnHeaders];
     } else {
       this.findLastColumnHeader();
-      let rangeSpec = 'A1:' + this.lastColumn + '1';
-      let headerRange = this.sheet.getRange(rangeSpec);
+      if (this.lastColumn < 'A') {
+        throw 'No headers in sheet named: ' + this.name;
+      }
+      let headerRange = this.sheet.getRange('A1:' + this.lastColumn + '1');
       this.headerData = headerRange.getValues();
     }
   }
