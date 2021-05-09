@@ -1,10 +1,10 @@
 class ClientColumnMetadata {
   constructor() {
     const lineSep = String.fromCharCode(10);
-    let importTestingBaseID = 'app0jpIprz0I1fOmP';
-    let importTestingViewID = 'viwEXNtNLXdDgVn4R';
-    let productionBaseID = 'TODO';
-    let productionViewID = 'TODO';
+    let deprecatedBaseID = 'app0jpIprz0I1fOmP';
+    let deprecatedViewID = 'viwEXNtNLXdDgVn4R';
+    let era_liveDatabaseBaseId = 'appYN8z5f60xC0XRE';
+    let era_liveDatabaseViewID = 'viwCrwktzudsRGwzG';
     this.airtableBaseID = null;
     this.airtableViewID = null;
     if (this.airtableBaseID) {
