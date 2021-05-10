@@ -214,7 +214,7 @@ class TheApp {
       let nextCourtDate = clientData[courtDateIndex];
       let dateOK = (nextCourtDate >= today || isUnknownDate(nextCourtDate));
       let confirmed = clientData[confirmationIndex] !== '';
-      let eligible = clientData[programEligibilityIndex] === 'Verified eligible';
+      let eligible = clientData[programEligibilityIndex] === 'Eligible';
       let complete = clientData[applicationStatusIndex] === 'Rental application accepted as complete';
       let notBulk = clientData[bulkAgreementIndex] === ''; 
       let notAssigned = clientData[attorneyIndex] === '';
