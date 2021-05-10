@@ -115,14 +115,14 @@ class AirTableReader {
       clientColumnMetadata.landlordEmailColName,
       clientColumnMetadata.landlordPhoneColName,
       clientColumnMetadata.landlordAddressColName,
-      clientColumnMetadata.landlordPaymentStatus,
       clientColumnMetadata.courtDateColName,
       clientColumnMetadata.caseNumberColName,
       clientColumnMetadata.clerkConfirmationColName,
       clientColumnMetadata.matchStatusColName,
       clientColumnMetadata.bulkAgreementColName,
       clientColumnMetadata.rentalApplicationStatusColName,
-      clientColumnMetadata.programEligibilityColName
+      clientColumnMetadata.programEligibilityColName,
+      clientColumnMetadata.attorneyColName
     ];
     let records = [header];
     let recordOffset = 0;
@@ -137,7 +137,13 @@ class AirTableReader {
         for (let propt in value1.fields) {
           let i = header.indexOf(propt);
           if (i > -1) {
-            rowRecord[i] = value1.fields[propt][0];
+            if (propt === clientColumnMetadata.clerkConfirmationColName) {
+              if (value1.fields[propt]) {
+                rowRecord[i] = 'true';
+              }
+            } else {
+              rowRecord[i] = value1.fields[propt][0];
+            }
           }
         }
         if (rowRecord[header.indexOf(clientColumnMetadata.uniqueIdColName)] !== '') {
@@ -178,6 +184,7 @@ class TheApp {
     let applicationStatusIndex = this.clientsColumnIndex(clientColumnMetadata.rentalApplicationStatusColName);
     let courtDateIndex = this.clientsColumnIndex(clientColumnMetadata.courtDateColName);
     let bulkAgreementIndex = this.clientsColumnIndex(clientColumnMetadata.bulkAgreementColName);
+    let attorneyIndex = this.clientsColumnIndex(clientColumnMetadata.attorneyColName);
     let today = new Date();
     clientRows = clients.getAllDataRows();
     let clientIndex;
@@ -185,19 +192,13 @@ class TheApp {
       let clientData = clientRows[clientIndex];
       let nextCourtDate = clientData[courtDateIndex];
       let dateOK = (nextCourtDate >= today || isUnknownDate(nextCourtDate));
-      let caseOpen = true;
-      if (clientColumnMetadata.landlordPaymentStatus) {
-        caseOpen = clientData[this.clientsColumnIndex(clientColumnMetadata.landlordPaymentStatus)] === '';
-      }
-      if (dateOK &&
-          caseOpen &&
-          clientData[confirmationIndex] === 'Yes' &&
-          clientData[programEligibilityIndex] === 'Verified eligible' &&
-          clientData[applicationStatusIndex] === 'Rental application accepted as complete' &&
-          clientData[bulkAgreementIndex] !== 'Yes') {
-        if (!clientData[matchStatusIndex]) {
-          indexArray.push(clientIndex);
-        }
+      let confirmed = clientData[confirmationIndex] !== '';
+      let eligible = clientData[programEligibilityIndex] === 'Verified eligible';
+      let complete = clientData[applicationStatusIndex] === 'Rental application accepted as complete';
+      let notBulk = clientData[bulkAgreementIndex] === ''; 
+      let notAssigned = clientData[attorneyIndex] === '';
+      if (dateOK && confirmed && eligible && complete && notBulk && notAssigned) {
+        indexArray.push(clientIndex);
       }
     }
     t.done('sort');
