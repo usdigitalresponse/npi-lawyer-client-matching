@@ -5,11 +5,11 @@ class ClientColumnMetadata {
     this.airtableBaseID = era_liveDatabaseBaseId;
     this.airtableViewID = era_liveDatabaseViewID;
     this.courtDateColName = 'Confirmed Court Date';
-    this.caseNumberColName = 'Confirmed Case Number';
+    this.caseNumberColName = 'Confirmed Case #';
     this.uniqueIdColName = 'UID';
     this.clerkConfirmationColName = 'Clerk Confirmation';
     this.matchStatusColName = 'Match Status';
-    this.bulkAgreementColName = 'Bulk agreement';
+    this.bulkAgreementColName = 'Bulk agreement entries';
     this.rentalApplicationStatusColName = 'Rental Assistance Application Status';
     this.programEligibilityColName = 'Program Eligibility';
     this.landlordEmailColName = 'Landlord Email';
@@ -23,6 +23,7 @@ class ClientColumnMetadata {
     this.emailColName = 'Email';
     this.clientPhoneColName = 'Phone';
     this.attorneyColName = 'Attorney';
+    this.diagnosticColName = 'Diagnostic';
 
     this.currentVersion = null; // TODO: remove code that copies from other sheet.
   }

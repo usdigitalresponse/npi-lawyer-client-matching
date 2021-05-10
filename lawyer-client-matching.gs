@@ -118,11 +118,11 @@ class AirTableReader {
       clientColumnMetadata.courtDateColName,
       clientColumnMetadata.caseNumberColName,
       clientColumnMetadata.clerkConfirmationColName,
-      clientColumnMetadata.matchStatusColName,
       clientColumnMetadata.bulkAgreementColName,
       clientColumnMetadata.rentalApplicationStatusColName,
       clientColumnMetadata.programEligibilityColName,
-      clientColumnMetadata.attorneyColName
+      clientColumnMetadata.attorneyColName,
+      clientColumnMetadata.diagnosticColName
     ];
     let records = [header];
     let recordOffset = 0;
@@ -137,12 +137,33 @@ class AirTableReader {
         for (let propt in value1.fields) {
           let i = header.indexOf(propt);
           if (i > -1) {
-            if (propt === clientColumnMetadata.clerkConfirmationColName) {
-              if (value1.fields[propt]) {
-                rowRecord[i] = 'true';
+            switch(propt) {
+              case clientColumnMetadata.clerkConfirmationColName: {
+                if (value1.fields[propt]) {
+                  rowRecord[i] = 'true';
+                }
+                break;
               }
-            } else {
-              rowRecord[i] = value1.fields[propt][0];
+              case clientColumnMetadata.courtDateColName: {
+                rowRecord[i] = value1.fields[propt];
+                break;
+              }
+              case clientColumnMetadata.attorneyColName: {
+                rowRecord[i] = value1.fields[propt];
+                break;
+              }
+              case clientColumnMetadata.landLordNameColName: { // TODO: Need to look it up from record number.
+                rowRecord[i] = 'Landlord name to come.';
+                break;
+              }
+              case clientColumnMetadata.bulkAgreementColName: {
+                rowRecord[i] = 'Yes';
+                break;
+              }
+              default: {
+                rowRecord[i] = value1.fields[propt][0];
+                break;
+              }
             }
           }
         }
@@ -179,12 +200,12 @@ class TheApp {
     let t = new CodeTimer('build client array');
     let indexArray = [];
     let confirmationIndex = this.clientsColumnIndex(clientColumnMetadata.clerkConfirmationColName);
-    let matchStatusIndex = this.clientsColumnIndex(clientColumnMetadata.matchStatusColName);
     let programEligibilityIndex = this.clientsColumnIndex(clientColumnMetadata.programEligibilityColName);
     let applicationStatusIndex = this.clientsColumnIndex(clientColumnMetadata.rentalApplicationStatusColName);
     let courtDateIndex = this.clientsColumnIndex(clientColumnMetadata.courtDateColName);
     let bulkAgreementIndex = this.clientsColumnIndex(clientColumnMetadata.bulkAgreementColName);
     let attorneyIndex = this.clientsColumnIndex(clientColumnMetadata.attorneyColName);
+    let diagnosticIndex = this.clientsColumnIndex(clientColumnMetadata.diagnosticColName);
     let today = new Date();
     clientRows = clients.getAllDataRows();
     let clientIndex;
@@ -199,8 +220,25 @@ class TheApp {
       let notAssigned = clientData[attorneyIndex] === '';
       if (dateOK && confirmed && eligible && complete && notBulk && notAssigned) {
         indexArray.push(clientIndex);
+      } else {
+        let diagnostic = 'unknown';
+        if (!dateOK) {
+          diagnostic = 'dateOK';
+        } else if (!confirmed) {
+          diagnostic = 'confirmed';
+        } else if (!eligible) {
+          diagnostic = 'eligible';
+        } else if (!complete) {
+          diagnostic = 'complete';
+        } else if (!notBulk) {
+          diagnostic = 'notBulk';
+        } else if (!notAssigned) {
+          diagnostic = 'notAssigned';
+        }
+        clientRows[clientIndex][diagnosticIndex] = diagnostic;
       }
     }
+    clients.setMultipleRows(2, clientRows);
     t.done('sort');
     indexArray.sort(compareByCourtDate);
     t.done('end');
