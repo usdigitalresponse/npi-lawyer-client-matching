@@ -13,7 +13,7 @@ class ClientColumnMetadata {
     this.rentalApplicationStatusColName = 'Rental Assistance Application Status';
     this.programEligibilityColName = 'Program Eligibility';
     this.landlordEmailColName = 'Landlord Email';
-    this.landLordNameColName = 'Landlord Name';
+    this.landLordNameColName = 'Landlord name - plain (from Application)';
     this.landlordPhoneColName = 'Landlord Phone';
     this.landlordAddressColName = 'Landlord Address';
     this.clientAddressColName = 'Tenant Address';

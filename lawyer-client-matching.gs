@@ -144,16 +144,10 @@ class AirTableReader {
                 }
                 break;
               }
-              case clientColumnMetadata.courtDateColName: {
-                rowRecord[i] = value1.fields[propt];
-                break;
-              }
+              case clientColumnMetadata.courtDateColName:
+              case clientColumnMetadata.caseNumberColName:
               case clientColumnMetadata.attorneyColName: {
                 rowRecord[i] = value1.fields[propt];
-                break;
-              }
-              case clientColumnMetadata.landLordNameColName: { // TODO: Need to look it up from record number.
-                rowRecord[i] = 'Landlord name to come.';
                 break;
               }
               case clientColumnMetadata.bulkAgreementColName: {
