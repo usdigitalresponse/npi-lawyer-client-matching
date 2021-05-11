@@ -93,6 +93,7 @@ class SheetClass {
     this.lastColumn = this.columnLetterFromIndex(this.headers[0].length - 1);
     let rangeSpec = 'A1' + ':' + this.lastColumn + lastRow;
     let range = this.sheet.getRange(rangeSpec);
+    this.sheet.clear();
     range.setValues(data);
   }
   columnIndexFromLetter(colId) {
@@ -166,7 +167,7 @@ class SheetClass {
     let sourceSheet = SpreadsheetApp.getActive().getSheetByName(sourceSheetName);
     let fullRange = sourceSheet.getRange(sourceRange);
     let sData = fullRange.getValues();
-    this.clear();
+    this.sheet.clear();
     this.sheet.getRange(sourceRange).setValues(sData);
   }
   getAllDataRows() {
