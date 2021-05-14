@@ -24,8 +24,6 @@ class ClientColumnMetadata {
     this.clientPhoneColName = 'Phone';
     this.attorneyColName = 'Attorney';
     this.diagnosticColName = 'Diagnostic';
-
-    this.currentVersion = null; // TODO: remove code that copies from other sheet.
   }
 }
  

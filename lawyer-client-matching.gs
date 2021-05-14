@@ -185,7 +185,7 @@ class TheApp {
     try {
       index = clients.columnIndex(columnName);
     } catch(e) {
-      e += ' Is it in https://docs.google.com/spreadsheets/d/' + clientColumnMetadata.currentVersion + '?';
+      e += ' Is it in the Airtable table? Trying again might work.';
       throw e;
     }
     return index;
@@ -416,11 +416,7 @@ class TheApp {
   doMatching() {
     let t1 = new CodeTimer('new SheetClass');
     clients = new SheetClass('Clients Raw');
-    if (clientColumnMetadata.airtableBaseID) {
-      clients.load((new AirTableReader().readFromTable()));
-    } else {
-      clients.cloneSheet(clientColumnMetadata.currentVersion, 'Client List', hackTime);
-    }
+    clients.load((new AirTableReader().readFromTable()));
     t1.done('buildSortedClientArray');
     let sortedClientArray = this.buildSortedClientArray(clients);
     t1.done('pre-match');
