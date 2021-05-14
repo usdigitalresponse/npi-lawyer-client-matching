@@ -357,16 +357,22 @@ class TheApp {
         // Assumes emailedMatches rows stay in Timestamp order.
     let lastEmailed = emailedMatches.getRowData(emailedMatches.getRowCount());
     let lastEmailedDate = lastEmailed[0][emailedMatches.columnIndex('Timestamp')];
-    let nextRowNumber = 2;
     let iter = new SheetRowIterator(rawAvailabilities);
+    let rowData = [];
     let raw;
     while (raw = iter.getNextRow()) {
+      let name = raw[rawAvailabilities.columnIndex('Name')];
+      let attorneyRowIndex = attorneys.lookupRowIndex('Name', name);
+      if (attorneyRowIndex < 0) {
+        continue;
+      }
       if (lastEmailedDate < raw[rawAvailabilities.columnIndex('Timestamp')]) {
         raw[availabilities.columnIndex('Type')] = '';
         raw[availabilities.columnIndex('Type Rank')] = '';
-        availabilities.setRowData(nextRowNumber++, [raw]);
+        rowData.push(raw);
       }
     }
+    availabilities.setMultipleRows(2, rowData);
     this.cleanUpAvailabilities(availabilities, attorneys);
     availabilities.sortSheet('Type Rank', true);
     return availabilities;
