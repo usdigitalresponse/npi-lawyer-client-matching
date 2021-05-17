@@ -413,7 +413,14 @@ class TheApp {
     }
     hotList.setMultipleRows(2, rowsData);
   }
+  clearOldData() {
+    let sheetNames = ['Hot List', 'Created Matches'];
+    for (let n of sheetNames) {
+      (new SheetClass(n)).clearData();
+    }
+  }
   doMatching() {
+    this.clearOldData();
     let t1 = new CodeTimer('new SheetClass');
     clients = new SheetClass('Clients Raw');
     clients.load((new AirTableReader().readFromTable()));
