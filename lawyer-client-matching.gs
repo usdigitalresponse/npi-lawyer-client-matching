@@ -206,7 +206,7 @@ class TheApp {
     for (clientIndex = 0; clientIndex < clientRows.length; clientIndex++) {
       let clientData = clientRows[clientIndex];
       let nextCourtDate = clientData[courtDateIndex];
-      let dateOK = (nextCourtDate >= today || isUnknownDate(nextCourtDate));
+      let dateOK = isUnknownDate(nextCourtDate) || nextCourtDate >= today;
       let confirmed = clientData[confirmationIndex] !== '';
       let eligible = clientData[programEligibilityIndex] === 'Eligible';
       let complete = clientData[applicationStatusIndex] === 'Rental application accepted as complete';
@@ -349,12 +349,12 @@ class TheApp {
   }
   setupAvailabilities(attorneys, emailedMatches) {
     let availabilities = new SheetClass('Ranked Availability');
-    let rawAvailabilities = new SheetClass('Availability Raw');
         // Delete all rows in ‘Ranked Availability’. There may have been unused availabilities,
         // but they are from last week (or whenever the last ‘asking for confirmation’ emails went out).
     availabilities.clearData('Name');
         // Copy from ‘Availability Raw’ all rows timestamped since the most recent email went out.
         // Assumes emailedMatches rows stay in Timestamp order.
+    let rawAvailabilities = new SheetClass('Availability Raw');
     let lastEmailed = emailedMatches.getRowData(emailedMatches.getRowCount());
     let lastEmailedDate = lastEmailed[0][emailedMatches.columnIndex('Timestamp')];
     let iter = new SheetRowIterator(rawAvailabilities);
@@ -411,7 +411,9 @@ class TheApp {
       this.copyFromClientList(client, hotList, clientData);
       rowsData.push(client);
     }
-    hotList.setMultipleRows(2, rowsData);
+    if (rowsData.length > 0) {
+      hotList.setMultipleRows(2, rowsData);
+    }
   }
   clearOldData() {
     let sheetNames = ['Hot List', 'Created Matches'];
@@ -419,11 +421,8 @@ class TheApp {
       (new SheetClass(n)).clearData();
     }
   }
-  doMatching() {
+  matchWithStaticClients(t1) {
     this.clearOldData();
-    let t1 = new CodeTimer('new SheetClass');
-    clients = new SheetClass('Clients Raw');
-    clients.load((new AirTableReader().readFromTable()));
     t1.done('buildSortedClientArray');
     let sortedClientArray = this.buildSortedClientArray(clients);
     t1.done('pre-match');
@@ -443,16 +442,15 @@ class TheApp {
 
     let lastAvailabilitiesIndex = availabilities.getRowCount();
     if (lastAvailabilitiesIndex < 2) {
-      let msg = 'No attorneys found to match to.';
+      let msg = 'No attorneys found to match to. Will go ahead and build Hot List.';
       logger.logAndAlert('Warning', msg);
-      return;
     }
     let nextMatchIndex = 2;
+    let clientIndex = 0;
     let availabilityIndex = 2;
     let d = new Date();
-    let clientIndex;
     t1.done('match');
-    for (clientIndex = 0; clientIndex < sortedClientArray.length; clientIndex++) {
+    for (; clientIndex < sortedClientArray.length; clientIndex++) {
       availabilityIndex = this.getAvailablityIndex(availabilityIndex, lastAvailabilitiesIndex, availabilities);
       if (availabilityIndex < 0) {
         break;
@@ -460,7 +458,7 @@ class TheApp {
       let availabilityData = availabilities.getRowData(availabilityIndex)[0];
       if (this.clientCanMatch(clientIndex, sortedClientArray, emailedMatches,
                               availabilities, availabilityData, attorneys)) {
-        let clientData = clients.getRowData(sortedClientArray[clientIndex])[0];
+        let clientData = clientRows[sortedClientArray[clientIndex]];
         let match = this.createMatch(d, matches, clientData, attorneys, availabilityData, availabilities);
         matches.setRowData(nextMatchIndex, [match]);
         nextMatchIndex++;
@@ -480,6 +478,19 @@ class TheApp {
   sendStatusEmail(msg) {
     MailApp.sendEmail({
       to: 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org',
+      subject: msg,
+      htmlBody: '.'
+    });
+  }
+  doMatching() {
+    let t1 = new CodeTimer('new SheetClass');
+    clients = new SheetClass('Clients Raw');
+    clients.load((new AirTableReader().readFromTable()));
+    this.matchWithStaticClients(t1);
+  }
+  sendStatusEmail(msg) {
+    MailApp.sendEmail({
+      to: 'christopher@mscera.org',
       subject: msg,
       htmlBody: '.'
     });
@@ -541,7 +552,10 @@ class TheApp {
 theApp = new TheApp();
 function performMatching() { theApp.performMatching(); }
 function emailLawyers() { theApp.emailLawyers(); }
-function doMatching() { theApp.doMatching(); }
+function matchWithStaticClients() {
+  clients = new SheetClass('Clients Raw');
+  theApp.matchWithStaticClients(new CodeTimer('nothing'));
+}
 function doAll() { performMatching(); emailLawyers(); }
 
 /* Uncomment and run only *once* after creating (or copying) Google Sheet.
