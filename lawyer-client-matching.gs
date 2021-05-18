@@ -475,22 +475,21 @@ class TheApp {
     logger.logAndAlert('Info', msg);
     this.sendStatusEmail(msg);
   }
-  sendStatusEmail(msg) {
-    MailApp.sendEmail({
-      to: 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org',
-      subject: msg,
-      htmlBody: '.'
-    });
-  }
   doMatching() {
     let t1 = new CodeTimer('new SheetClass');
     clients = new SheetClass('Clients Raw');
     clients.load((new AirTableReader().readFromTable()));
     this.matchWithStaticClients(t1);
   }
+  setStatusEmails(emailAddresses) {
+    this.emailAddresses = emailAddresses;
+  }
   sendStatusEmail(msg) {
+    if (!this.emailAddresses) {
+      this.emailAddresses = 'christopher@mscera.org, steve@npimemphis.org, kayla@npimemphis.org';
+    }
     MailApp.sendEmail({
-      to: 'christopher@mscera.org',
+      to: this.emailAddresses,
       subject: msg,
       htmlBody: '.'
     });
@@ -552,11 +551,11 @@ class TheApp {
 theApp = new TheApp();
 function performMatching() { theApp.performMatching(); }
 function emailLawyers() { theApp.emailLawyers(); }
-function matchWithStaticClients() {
-  clients = new SheetClass('Clients Raw');
-  theApp.matchWithStaticClients(new CodeTimer('nothing'));
-}
 function doAll() { performMatching(); emailLawyers(); }
+
+// For debugging/testing
+function dPerformMatching() { theApp.setStatusEmails('christopher@mscera.org'); theApp.performMatching(); }
+function dEmailLawyers()    { theApp.setStatusEmails('christopher@mscera.org'); theApp.emailLawyers(); }
 
 /* Uncomment and run only *once* after creating (or copying) Google Sheet.
 function createTrigger() {
