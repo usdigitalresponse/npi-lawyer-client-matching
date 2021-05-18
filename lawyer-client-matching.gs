@@ -497,7 +497,7 @@ class TheApp {
   }
   performMatching() {
     try {
-      doMatching();
+      this.doMatching();
     } catch(err) {
       logger.logAndAlert('performMatching: catch: ', err);
     }
