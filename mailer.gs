@@ -38,11 +38,11 @@ class Mailer {
       });
     }
     let msg = 'Emailed ' + flatArray.length + ' attorneys asking for their availability';
-    let statusEmailAddresses = 'christopher@mscera.org, usdr@mscera.org, steve@npimemphis.org';
+    let statusEmailAddresses = 'christopher@mscera.org, kayla@npimemphis.org, steve@npimemphis.org, chris.keith@gmail.com';
     MailApp.sendEmail({
       to: statusEmailAddresses,
       subject: msg,
-      htmlBody: this.availabilityBody
+      htmlBody: flatArray.toString()
     });
     (new Logger()).writeLogLine([msg]);
   }
