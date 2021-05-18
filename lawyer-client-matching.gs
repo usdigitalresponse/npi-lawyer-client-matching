@@ -124,6 +124,10 @@ class AirTableReader {
       clientColumnMetadata.attorneyColName,
       clientColumnMetadata.diagnosticColName
     ];
+/*    return (new AirTableImporter().readFromTable(apiKey, clientColumnMetadata.airtableBaseID,
+            clientColumnMetadata.airtableViewID, tableName, header,
+            clientColumnMetadata.uniqueIdColName));
+*/
     let records = [header];
     let recordOffset = 0;
     while (recordOffset !== null) {	
