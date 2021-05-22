@@ -19,7 +19,7 @@ function checkAttorneyEmails() {
   let assignedAttorneys = getMap('Clients Raw', 'Attorney', 'UID');
   let unknownAttorneys = {};
   for (let name of assignedAttorneys.keys()) {
-    if (!attorneyNames[name]) {
+    if (!attorneyNames.get(name)) {
       unknownAttorneys[name] = assignedAttorneys.get(name);
     }
   }
