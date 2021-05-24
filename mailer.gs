@@ -21,25 +21,35 @@ class Mailer {
 '<p><em><span style="font-weight: 400;">Please note, esp@npimemphis.org is an automated messaging address, and responses directly to this email address will not be read. If you have questions about this email, would like to update your volunteer contact information, please reach out to </span></em><em><span style="font-weight: 400;">Steve Barlow</span></em><em><span style="font-weight: 400;">.</span></em></p>'
   }
   doMail() {
+    let testing = false;
     (new AirTableReader()).readAttorneyRows();
     let newStaffList = new SheetClass('Staff List');
     let arrayOfAddresses = newStaffList.getColumnData('Email');
     let flatArray = [];
     for (let i = 0; i < arrayOfAddresses.length; i++) {
-      flatArray.push(arrayOfAddresses[i][0]);
+      if (arrayOfAddresses[i][0]) {
+        flatArray.push(arrayOfAddresses[i][0]);
+      }
     }
     const CHUNK_SIZE = 45; // leave room for up to 5 'to:' and 'cc:' addresses.
     for (let i = 0; i < flatArray.length; i += CHUNK_SIZE) {
       let temparray = flatArray.slice(i, i + CHUNK_SIZE);
-      MailApp.sendEmail({
-        to: 'usdr@mscera.org',
-        bcc: temparray.join(','),
-        subject: 'Eviction Settlement Program (ESP) - Are you available to volunteer next week?',
-        htmlBody: this.availabilityBody
-      });
+      if (testing) {
+        console.log(temparray);
+      } else {
+        MailApp.sendEmail({
+          to: 'usdr@mscera.org',
+          bcc: temparray.join(','),
+          subject: 'Eviction Settlement Program (ESP) - Are you available to volunteer next week?',
+          htmlBody: this.availabilityBody
+        });
+      }
     }
     let msg = 'Emailed ' + flatArray.length + ' attorneys asking for their availability';
     let statusEmailAddresses = 'christopher@mscera.org, kayla@npimemphis.org, steve@npimemphis.org, chris.keith@gmail.com';
+    if (testing) {
+      statusEmailAddresses = 'chris.keith@gmail.com';
+    }
     MailApp.sendEmail({
       to: statusEmailAddresses,
       subject: msg,
