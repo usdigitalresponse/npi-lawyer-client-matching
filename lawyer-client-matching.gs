@@ -278,29 +278,6 @@ class TheApp {
       }
     }
   }
-  updateStaff(attorneys) {
-    let newStaffList = new SheetClass('Staff List');
-    let nextStaffIndex = attorneys.getRowCount() + 1;
-    let d = new Date();
-    let newStaffIterator = new SheetRowIterator(newStaffList);
-    let newStaffData;
-    while (newStaffData = newStaffIterator.getNextRow()) {
-      let name = newStaffData[newStaffList.columnIndex('First Name')] + ' ' + newStaffData[newStaffList.columnIndex('Last Name')]
-      if (attorneys.lookupRowIndex('Name', name) == -1) {
-        let newRow = [];
-        newRow[attorneys.columnIndex('Timestamp')] = d;
-        newRow[attorneys.columnIndex('FirstName')] = newStaffData[newStaffList.columnIndex('First Name')];
-        newRow[attorneys.columnIndex('LastName')] = newStaffData[newStaffList.columnIndex('Last Name')];
-        newRow[attorneys.columnIndex('Email')] = newStaffData[newStaffList.columnIndex('Email')];
-        let tColumnHeader = 'What is your affiliation? Let us know if you are a pro bono attorney, NPI Staff member, or a current/former law student.';
-        newRow[attorneys.columnIndex('Type')] = newStaffData[newStaffList.columnIndex(tColumnHeader)];
-        let sColumnHeader = 'Do you speak Spanish? Selecting yes will allow us to match you with Spanish speaking clients.';
-        newRow[attorneys.columnIndex('Spanish?')] = newStaffData[newStaffList.columnIndex(sColumnHeader)];
-        newRow[attorneys.columnIndex('Name')] = name;
-        attorneys.setRowData(nextStaffIndex++, [newRow]);
-      }
-    }
-  }
   getAvailablityIndex(availabilityIndex, lastAvailabilitiesIndex, availabilities) {
     if (availabilityIndex > lastAvailabilitiesIndex) { // Check if no one available at all.
       return -1;
@@ -436,10 +413,10 @@ class TheApp {
       logger.logAndAlert('Warning', msg);
       return;
     }
+    (new AirTableReader()).readAttorneyRows();
     let attorneys = new SheetClass('Staff List');
     let emailedMatches = new SheetClass('Emailed Matches');
     let availabilities = this.setupAvailabilities(attorneys, emailedMatches);
-//    this.updateStaff(attorneys); // Until the Google Form for adding attorneys is enabled.
     let matches = new SheetClass('Created Matches');
     matches.clearData('Case Number');
 
