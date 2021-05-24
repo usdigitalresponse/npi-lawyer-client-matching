@@ -21,6 +21,7 @@ class Mailer {
 '<p><em><span style="font-weight: 400;">Please note, esp@npimemphis.org is an automated messaging address, and responses directly to this email address will not be read. If you have questions about this email, would like to update your volunteer contact information, please reach out to </span></em><em><span style="font-weight: 400;">Steve Barlow</span></em><em><span style="font-weight: 400;">.</span></em></p>'
   }
   doMail() {
+    (new AirTableReader()).readAttorneyRows();
     let newStaffList = new SheetClass('Staff List');
     let arrayOfAddresses = newStaffList.getColumnData('Email');
     let flatArray = [];
