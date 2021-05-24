@@ -16,12 +16,24 @@ class LawyerImporter {
       }
     }
   }
-  import() {
+  importAttorneys() {
     let apiKey = '';
-    let baseId = 'appbhKzcwhje8zJKH';
-    let viewId = 'viwM9EapkyV7vAOl9';
-    let tableName = 'Attorneys';
+    let tableName = 'Attorneys - ERA';
     let header = [
+      'Timestamp',
+      'FirstName',
+      'LastName',
+      'Attorney Email',
+      'Type',
+      'Spanish?',
+      'MALS?',
+      'Attorney Name'
+    ];
+    let rows = (new AirTableImporter().readFromTable(
+                    apiKey, clientColumnMetadata.airtableBaseID,
+                    'viwoZkM0piORNJIkc', tableName, header, 'Attorney Name'));
+    this.updateBooleans(rows);  
+    rows[0] = [
       'Timestamp',
       'FirstName',
       'LastName',
@@ -31,13 +43,12 @@ class LawyerImporter {
       'MALS?',
       'Name'
     ];
-    let rows = (new AirTableImporter().readFromTable(
-                      apiKey, baseId, viewId, tableName, header, 'Email'));
-    this.updateBooleans(rows);  
-    (new SheetClass('Staff List')).setMultipleRows(1, rows);
+    let staffList = new SheetClass('Staff List'); 
+    staffList.clearData();
+    staffList.setMultipleRows(1, rows);
   }
 }
 
 function doTest() {
-  (new LawyerImporter()).import();
+  (new LawyerImporter()).importAttorneys();
 }
