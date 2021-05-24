@@ -100,7 +100,7 @@ class CodeTimer {
 }
 
 class AirTableReader {
-  readFromTable() {
+  readClientRows() {
     let apiKey = '';
     let tableName = 'Eviction Cases';
     let header = [
@@ -124,59 +124,9 @@ class AirTableReader {
       clientColumnMetadata.attorneyColName,
       clientColumnMetadata.diagnosticColName
     ];
-/*    return (new AirTableImporter().readFromTable(apiKey, clientColumnMetadata.airtableBaseID,
+    return (new AirTableImporter().readFromTable(apiKey, clientColumnMetadata.airtableBaseID,
             clientColumnMetadata.airtableViewID, tableName, header,
             clientColumnMetadata.uniqueIdColName));
-*/
-    let records = [header];
-    let recordOffset = 0;
-    while (recordOffset !== null) {	
-      let url = [
-        'https://api.airtable.com/v0/', clientColumnMetadata.airtableBaseID, '/', encodeURIComponent(tableName),
-        '?', 'api_key=', apiKey, '&view=', clientColumnMetadata.airtableViewID, '&offset=', recordOffset
-      ].join('');
-      let response = JSON.parse(UrlFetchApp.fetch(url, {'method' : 'GET'}));
-      for (let value1 of response.records.values()) {
-        let rowRecord = Array(header.length).fill("");
-        for (let propt in value1.fields) {
-          let i = header.indexOf(propt);
-          if (i > -1) {
-            switch(propt) {
-              case clientColumnMetadata.clerkConfirmationColName: {
-                if (value1.fields[propt]) {
-                  rowRecord[i] = 'true';
-                }
-                break;
-              }
-              case clientColumnMetadata.courtDateColName:
-              case clientColumnMetadata.caseNumberColName:
-              case clientColumnMetadata.attorneyColName: {
-                rowRecord[i] = value1.fields[propt];
-                break;
-              }
-              case clientColumnMetadata.bulkAgreementColName: {
-                rowRecord[i] = 'Yes';
-                break;
-              }
-              default: {
-                rowRecord[i] = value1.fields[propt][0];
-                break;
-              }
-            }
-          }
-        }
-        if (rowRecord[header.indexOf(clientColumnMetadata.uniqueIdColName)] !== '') {
-          records.push(rowRecord);
-        }
-      }
-      Utilities.sleep(300);       // Don't trigger Airtable rate limiting.
-      if (response.offset) {      // Airtable returns NULL if no more records.
-        recordOffset = response.offset;
-      } else {
-        recordOffset = null;
-      }
-    }
-    return records;
   }
 }
 
@@ -482,7 +432,7 @@ class TheApp {
   doMatching() {
     let t1 = new CodeTimer('new SheetClass');
     clients = new SheetClass('Clients Raw');
-    clients.load((new AirTableReader().readFromTable()));
+    clients.load((new AirTableReader().readClientRows()));
     this.matchWithStaticClients(t1);
   }
   setStatusEmails(emailAddresses) {
@@ -558,8 +508,14 @@ function emailLawyers() { theApp.emailLawyers(); }
 function doAll() { performMatching(); emailLawyers(); }
 
 // For debugging/testing
-function dPerformMatching() { theApp.setStatusEmails('christopher@mscera.org'); theApp.performMatching(); }
-function dEmailLawyers()    { theApp.setStatusEmails('christopher@mscera.org'); theApp.emailLawyers(); }
+function dPerformMatching() {
+  theApp.setStatusEmails('christopher@mscera.org');
+  theApp.performMatching();
+}
+function dEmailLawyers() {
+  theApp.setStatusEmails('christopher@mscera.org');
+  theApp.emailLawyers();
+}
 
 /* Uncomment and run only *once* after creating (or copying) Google Sheet.
 function createTrigger() {
