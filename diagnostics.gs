@@ -13,7 +13,9 @@ function getMap(sheetName, keyColumnName, valueColumnName) {
 }
 function checkAttorneyEmails() {
   let clients = new SheetClass('Clients Raw');
-  clients.load((new AirTableReader().readClientRows()));
+  let airtableReader = new AirTableReader();
+  clients.load(airtableReader.readClientRows());
+  airtableReader.readAttorneyRows();
   let attorneyNames = getMap('Staff List', 'Name', 'Name');
   let assignedAttorneys = getMap('Clients Raw', 'Attorney', 'UID');
   let unknownAttorneys = {};
