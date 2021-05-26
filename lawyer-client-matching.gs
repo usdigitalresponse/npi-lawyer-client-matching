@@ -516,7 +516,7 @@ class TheApp {
       nextEmailMatchIndex++;
       newCaseCount++;
     }
-    let msg = 'Emailed ' + newCaseCount + ' new cases.';
+    let msg = 'Added ' + newCaseCount + ' new rows to "Emailed Matches" tab to trigger Zaps to send emails.';
     logger.logAndAlert('Info', msg);
     this.sendStatusEmail(msg);
   }
