@@ -1,28 +1,20 @@
-function getMap(sheetName, keyColumnName, valueColumnName) {
-  let sheet = new SheetClass(sheetName);
-  let theMap = new Map();
-  let rows = sheet.getAllDataRows();
-  let keyIndex = sheet.columnIndex(keyColumnName); 
-  let valueIndex = sheet.columnIndex(valueColumnName); 
-  for (let i = 0; i < rows.length; i++) {
-    let k = rows[i][keyIndex];
-    let v = rows[i][valueIndex];
-    theMap.set(k, v);
-  }
-  return theMap;
-}
-function checkAttorneyEmails() {
-  let clients = new SheetClass('Clients Raw');
-  let airtableReader = new AirTableReader();
-  clients.load(airtableReader.readClientRows());
-  airtableReader.readAttorneyRows();
-  let attorneyNames = getMap('Staff List', 'Name', 'Name');
-  let assignedAttorneys = getMap('Clients Raw', 'Attorney', 'UID');
-  let unknownAttorneys = {};
-  for (let name of assignedAttorneys.keys()) {
-    if (!attorneyNames.get(name)) {
-      unknownAttorneys[name] = assignedAttorneys.get(name);
+class GetMap {
+  getMap(sheetName, keyColumnName, valueColumnName) {
+    let sheet = new SheetClass(sheetName);
+    let theMap = new Map();
+    let rows = sheet.getAllDataRows();
+    let keyIndex = sheet.columnIndex(keyColumnName); 
+    let valueIndex = sheet.columnIndex(valueColumnName); 
+    for (let i = 0; i < rows.length; i++) {
+      let k = rows[i][keyIndex];
+      let v = rows[i][valueIndex];
+      theMap.set(k, v);
     }
+    return theMap;
   }
-  console.log(unknownAttorneys);
+}
+function checkForBlank() {
+  for (let name of ['Emailed Matches', 'Confirmed Matches']) {
+    console.log(name, ': total rows: ' + (new SheetClass(name)).getRowCount());
+  }
 }
