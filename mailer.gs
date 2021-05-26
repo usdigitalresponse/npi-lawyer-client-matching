@@ -46,7 +46,8 @@ class Mailer {
       }
     }
     let msg = 'Emailed ' + flatArray.length + ' attorneys asking for their availability';
-    let statusEmailAddresses = 'christopher@mscera.org, kayla@npimemphis.org, steve@npimemphis.org, chris.keith@gmail.com';
+    let statusEmailAddresses = 'christopher@mscera.org, kayla@npimemphis.org, steve@npimemphis.org, chris.keith@gmail.com' +
+                                ', renee.findley@gmail.com, tkalmanoff@gmail.com';
     if (testing) {
       statusEmailAddresses = 'chris.keith@gmail.com';
     }

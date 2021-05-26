@@ -466,7 +466,8 @@ class TheApp {
   }
   sendStatusEmail(msg) {
     if (!this.emailAddresses) {
-      this.emailAddresses = 'christopher@mscera.org, steve@npimemphis.org, kayla@npimemphis.org';
+      this.emailAddresses = 'christopher@mscera.org, steve@npimemphis.org, kayla@npimemphis.org' +
+                                ', renee.findley@gmail.com, tkalmanoff@gmail.com';
     }
     MailApp.sendEmail({
       to: this.emailAddresses,
