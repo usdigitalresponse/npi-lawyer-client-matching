@@ -516,7 +516,7 @@ class TheApp {
       nextEmailMatchIndex++;
       newCaseCount++;
     }
-    let msg = 'Added ' + newCaseCount + ' new rows to "Emailed Matches" tab to trigger Zaps to send emails.';
+    let msg = 'Added ' + newCaseCount + ' new rows to "Emailed Matches" tab to trigger Zapier to send emails to attorneys.';
     logger.logAndAlert('Info', msg);
     this.sendStatusEmail(msg);
   }
