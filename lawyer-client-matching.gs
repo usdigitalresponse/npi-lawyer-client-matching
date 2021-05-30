@@ -448,6 +448,7 @@ class TheApp {
     }
     t1.done('hotlist');
     this.createHotList(clientIndex, sortedClientArray);
+    this.setupAwaitingConfirmation();
     nextMatchIndex -= 2;
     let leftOver = sortedClientArray.length - nextMatchIndex;
     let msg = 'Matched ' + nextMatchIndex + ' clients. ' + leftOver + ' clients not matched.';
@@ -482,9 +483,8 @@ class TheApp {
       logger.logAndAlert('performMatching: catch: ', err);
     }
   }
-  doEmailLawyers() {
+  setupAwaitingConfirmation() {
     let d = new Date();
-    let newCaseCount = 0;
     let emailedMatches = new SheetClass('Emailed Matches');
     let awaitingConfirmation = new SheetClass('Awaiting Confirmation');
     awaitingConfirmation.clearData('Attorney Name - Client Name');
@@ -514,10 +514,73 @@ class TheApp {
               matchData[matches.columnIndex('Client Last Name')];
       awaitingConfirmation.setRowData(nextEmailMatchIndex, [confirmationData]);
       nextEmailMatchIndex++;
-      newCaseCount++;
     }
-    let msg = 'Added ' + newCaseCount + ' new rows to "Emailed Matches" tab to trigger Zapier to send emails to attorneys.';
-    logger.logAndAlert('Info', msg);
+  }
+}
+class LawyerEmailer {
+  constructor() {
+    this.body = '<p>Hello {{Lawyer First Name}},</p>' +
+    '<p>Thank you for your ongoing work for the Eviction Settlement Program (ESP). ' +
+    'This is an automated email letting you know that we have assigned you the following case based on your indicated availability. ' + 
+    'Please review the information below and confirm that you have no conflict and are still available to take on the case.</p>' +
+    '<ul>' +
+        '<li>Client Name: {{Client First Name}} {{Client Last Name}}</li>' +
+        '<li>Client Email: {{Client Email}}</li>' +
+        '<li>Client Phone Number: {{Client Phone Number}}</li>' +
+        '<li>Client Address: {{Client Address}}</li>' +
+        '<li>Landlord Name: {{Landlord Name}}</li>' +
+        '<li>Landlord Email: {{Landlord Email}}</li>' +
+        '<li>Landlord Phone Number: {{Landlord Phone Number}}</li>' +
+        '<li>Landlord Address: {{Landlord Address}}</li>' +
+    '</ul>' +
+    '<p><b>Please fill out <a href="https://docs.google.com/forms/d/e/1FAIpQLSev5619HDmd0b5Txy1q9c-SkfLICX4Z1HTBxcJfaM5a3cFpVQ/viewform" rel="noopener noreferrer" target="_blank">this form</a>' +
+    ' to confirm your acceptance or denial of the case.<b/> We will send you additional case information once we receive your submission.</p>' +
+    '<p>Thank you for your help with this and for your ongoing contributions to this program!</p>' +
+    '<p><em><sub>Do not reply to this email, as the inbox is not monitored. If you have any questions or concerns regarding the program or the process, please reach out to' +
+    '<a href="mailto:steve@npimemphis.org">Steve Barlow</a>.</sub></em></p>'
+  }
+  doEmailLawyers() {
+    let testing = true;
+    let patterns = [
+        '{{Lawyer First Name}}',
+        '{{Client First Name}}',
+        '{{Client Last Name}}',
+        '{{Client Email}}',
+        '{{Client Phone Number}}',
+        '{{Client Address}}',
+        '{{Landlord Name}}',
+        '{{Landlord Email}}',
+        '{{Landlord Phone Number}}',
+        '{{Landlord Address}}'
+    ];
+    let d = new Date();
+    let createdMatches = new SheetClass('Created Matches');
+    let iterator = new SheetRowIterator(createdMatches);
+    let createdRowNumber = 2;
+    let createdRowData;
+    while (createdRowData = iterator.getNextRow()) {
+      let specificBody = this.body;
+      for (let p of patterns) {
+        let colName = p.substr(2, p.length - 4);
+        let repVal = createdRowData[createdMatches.columnIndex(colName)];
+        specificBody = specificBody.replace(p, repVal);
+      }
+      MailApp.sendEmail({
+        to: confirmationData[emailedMatches.columnIndex('Lawyer Email')],
+        subject: 'Assigned Case Match from ESP - Action Required',
+        htmlBody: specificBody
+      });
+      createdRowData[createdMatches.columnIndex('Match Status')] = 'Pending';
+      createdRowData[createdMatches.columnIndex('Pending Timestamp')] = d;
+      createdMatches.setRowData(createdRowNumber, [createdRowData]);
+      /* TODO: update record in Airtable. */
+    }
+    let numCases = createdMatches.getRowCount() - 1;
+    let hotListLength = (new SheetClass('Hot list')).getRowCount() - 1;
+    let msg = 'Emailed ' + numCases + ' attorneys. ' + hotListLength + ' clients in the "Hot List" tab.';
+    if (testing) {
+      this.emailAddresses = 'chris.keith@gmail.com';
+    }
     this.sendStatusEmail(msg);
   }
   emailLawyers() {
@@ -527,12 +590,26 @@ class TheApp {
       logger.logAndAlert('emailLawyers: catch: ', err);
     }
   }
+  setStatusEmails(emailAddresses) {
+    this.emailAddresses = emailAddresses;
+  }
+  sendStatusEmail(msg) {
+    if (!this.emailAddresses) {
+      this.emailAddresses = 'christopher@mscera.org, steve@npimemphis.org, kayla@npimemphis.org' +
+                                ', renee.findley@gmail.com, tkalmanoff@gmail.com';
+    }
+    MailApp.sendEmail({
+      to: this.emailAddresses,
+      subject: msg,
+      htmlBody: '.'
+    });
+  }
 }
 
 theApp = new TheApp();
+lawyerEmailer = new LawyerEmailer();
 function performMatching() { theApp.performMatching(); }
-function emailLawyers() { theApp.emailLawyers(); }
-function doAll() { performMatching(); emailLawyers(); }
+function emailLawyers() { lawyerEmailer.emailLawyers(); }
 
 // For debugging/testing
 function dPerformMatching() {
@@ -540,21 +617,28 @@ function dPerformMatching() {
   theApp.performMatching();
 }
 function dEmailLawyers() {
-  theApp.setStatusEmails('christopher@mscera.org');
-  theApp.emailLawyers();
+  lawyerEmailer.setStatusEmails('christopher@mscera.org');
+  lawyerEmailer.emailLawyers();
 }
 
+// Delete old triggers corresponding to these (if any) before running this.
 /* Uncomment and run only *once* after creating (or copying) Google Sheet.
 function createTrigger() {
   try {
-    ScriptApp.newTrigger("doAll")
+    ScriptApp.newTrigger("performMatching")
       .timeBased()
       .atHour(12)
       .onWeekDay(ScriptApp.WeekDay.FRIDAY)
       .inTimezone("America/Chicago")
       .create();
+    ScriptApp.newTrigger("emailLawyers")
+      .timeBased()
+      .atHour(14)
+      .onWeekDay(ScriptApp.WeekDay.FRIDAY)
+      .inTimezone("America/Chicago")
+      .create();
   } catch(err) {
-    (new Logger()).logAndAlert('function askForAvailability: catch: ', err);
+    (new Logger()).logAndAlert('function createTrigger: catch: ', err);
   }
 }
 */
