@@ -2,4 +2,4 @@
 
 [Google Sheets README.md](google-sheets/README.md)
 
-Airtable README.md : *... to come ...*
+[Airtable README.md](airtable/README.md)
