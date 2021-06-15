@@ -1,3 +1,5 @@
+// Use https://support.airtable.com/hc/en-us/articles/115013249307-Pivot-table-app instead.
+
 import {initializeBlock,
         useBase,
         useRecords} from '@airtable/blocks/ui';
