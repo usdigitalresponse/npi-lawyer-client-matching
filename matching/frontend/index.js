@@ -1,11 +1,18 @@
-import {initializeBlock} from '@airtable/blocks/ui';
+import {initializeBlock,
+        useBase,
+        useRecords} from '@airtable/blocks/ui';
 import React from 'react';
 
 class CaseCountSummary {
-    getData() {
+    getTable() {
         const base = useBase();
-        const table = base.getTableByName('TABLE_NAME');
+        return base.getTableByName('Eviction Cases');
+    }
+    getData() {
+        const table = this.getTable();
         const attorneyField = table.getFieldByName('Attorney');
+        const availableAggregators = attorneyField.availableAggregators;
+        debugger;
         const statusField = table.getFieldByName('Status');
         const records = useRecords(table, {fields: [attorneyField, statusField]});
         let caseCounts = new Map();
@@ -17,7 +24,7 @@ class CaseCountSummary {
                 statusCounts = new Map();
                 caseCounts.set(attorneyString, statusCounts);
             } else {
-                statusCounts = recordsByXValueString.get(attorneyString);
+                statusCounts = caseCounts.get(attorneyString);
             }
             const statusName = record.getCellValue(statusField);
             const statusString = statusName === null ? 'No Status' : record.getCellValueAsString(statusField);
@@ -32,6 +39,16 @@ class CaseCountSummary {
         return caseCounts;
     }
     getHtml() {
+        const table = this.getTable();
+        const attorneyField = table.getFieldByName('Attorney');
+        const availableAggregators = attorneyField.availableAggregators;
+        let html = '';
+        for (const aggregator of availableAggregators) {
+            html += (' ' + aggregator.key);
+        }
+        // none countBlank count percentEmpty percentFilled
+        return html;
+/*
         const statusesByTime = [
             'Initial Submission',
             'LL Jotform Submission',
@@ -45,6 +62,7 @@ class CaseCountSummary {
         for (const title of statusesByTime) {
             html += (title + '</td>');
         }
+        html += '</th>'
         let caseCounts = this.getData();
         for (const attorneyCounts in caseCounts) {
             html += '<tr><td>';
@@ -55,13 +73,14 @@ class CaseCountSummary {
             html += '</td></tr>';
         }
         html += '</td></th>';
+*/
         html += '</table>';
         return html;
     }
 }
 
 function HelloWorldApp() {
-    return (new CaseCountSummary().getHtml());
+    return (new CaseCountSummary()).getHtml();
 }
 
 initializeBlock(() => <HelloWorldApp />);
