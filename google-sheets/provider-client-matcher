@@ -1,0 +1,28 @@
+class ProviderClientMatcher {
+  constructor() {
+//    this.logger = new Logger();
+  }
+  loadProviderData(providerData) {
+
+  }
+  loadClientData(clientData) {
+
+  }
+  matchThem() {
+    console.log('matchThem TBD');
+  }
+  doMatching() {
+    const providerTabName = 'Services provided - categorized';
+    const providerWorkbookId = '1BHlfgXgA-Ej3iRwirMAm7kipAGKKSr3gnD95ktyReXM';
+    const clientTabName = 'Clients';
+    let providerData = new SheetClass(providerTabName, providerWorkbookId);
+    let clientData = new SheetClass(clientTabName);
+    this.loadProviderData(providerData);
+    this.loadClientData(clientData);
+    this.matchThem();
+  }
+}
+
+function doMatching() {
+    (new ProviderClientMatcher()).doMatching();
+}
