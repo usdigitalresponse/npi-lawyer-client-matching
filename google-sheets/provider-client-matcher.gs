@@ -24,10 +24,30 @@ class ProviderClientMatcher {
     return providersByService;
   }
   loadClientData(clientData) {
-    let providersByService = {};
-    return providersByService;
+    let servicesByClient = {};
+    let headers = clientData.headerData[0];
+    for (let i = 1; i < headers.length; i++) {
+      let clientName = headers[i];
+      servicesByClient[clientName] = [];
+    }
+    let serviceIter = new SheetRowIterator(clientData);
+    let columnIndex = clientData.columnIndex('Service Name');
+
+    let service;
+    while (service = serviceIter.getNextRow()) {
+      for (let i = 1; i < headers.length; i++) {
+        let clientName = headers[i];
+        if (service[i] === 1) {
+          let serviceName = service[columnIndex];
+          servicesByClient[clientName].push(serviceName);
+        }
+      }
+    }
+    return servicesByClient;
   }
-  matchThem() {
+  matchThem(providersByService, servicesByClient) {
+    console.log(providersByService);
+    console.log(servicesByClient);
     console.log('matchThem TBD');
   }
   doMatching() {
@@ -37,8 +57,8 @@ class ProviderClientMatcher {
     let providerData = new SheetClass(providerTabName, providerWorkbookId);
     let clientData = new SheetClass(clientTabName);
     let providersByService = this.loadProviderData(providerData);
-    this.loadClientData(clientData, providersByService);
-    this.matchThem();
+    let servicesByClient = this.loadClientData(clientData);
+    this.matchThem(providersByService, servicesByClient);
   }
 }
 
