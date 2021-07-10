@@ -56,7 +56,11 @@ class ProviderClientMatcher {
         matchRow.push(serviceName);
         let providers = providersByService[serviceName];
         let index = this.getRandomInt(providers.length);
-        matchRow.push(providers[index]);
+        let provider = providers[index];
+        if (!provider) {
+          provider = '*** None ***'
+        }
+        matchRow.push(provider);
         matchDataRows.push(matchRow);
       }
     }
