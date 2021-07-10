@@ -1,7 +1,7 @@
 class ProviderClientMatcher {
-  constructor() {
-//    this.logger = new Logger();
-  }
+
+  // Returns a object containing a list of services.
+  // Under each service is a list of providers who can provide that service.
   loadProviderData(providerData) {
     let providersByService = {};
     let headers = providerData.headerData[0];
@@ -23,6 +23,9 @@ class ProviderClientMatcher {
     }
     return providersByService;
   }
+
+  // Returns a object containing a list of clients.
+  // Under each client is a list of services that they need.
   loadClientData(clientData) {
     let servicesByClient = {};
     let headers = clientData.headerData[0];
@@ -45,9 +48,14 @@ class ProviderClientMatcher {
     }
     return servicesByClient;
   }
+
+  // Returns a pseudo-random integer between zero and max - 1
+  // (including zero and max - 1) 
   getRandomInt(max) {
     return Math.floor(Math.random() * max);
   }
+
+  // Create rows containing client name, service name and provider.
   matchThem(providersByService, servicesByClient) {
     let matchDataRows = [];
     for (let client in servicesByClient) {
@@ -55,6 +63,8 @@ class ProviderClientMatcher {
         let matchRow = [client];
         matchRow.push(serviceName);
         let providers = providersByService[serviceName];
+
+        // Pick a random provider for this service.
         let index = this.getRandomInt(providers.length);
         let provider = providers[index];
         if (!provider) {
@@ -65,8 +75,10 @@ class ProviderClientMatcher {
       }
     }
     let matches = new SheetClass('Matches');
+    matches.clearData();
     matches.setMultipleRows(2, matchDataRows);
   }
+  
   doMatching() {
     const providerTabName = 'Services provided - categorized';
     const providerWorkbookId = '1BHlfgXgA-Ej3iRwirMAm7kipAGKKSr3gnD95ktyReXM';
