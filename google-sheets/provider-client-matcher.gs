@@ -45,10 +45,23 @@ class ProviderClientMatcher {
     }
     return servicesByClient;
   }
+  getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
   matchThem(providersByService, servicesByClient) {
-    console.log(providersByService);
-    console.log(servicesByClient);
-    console.log('matchThem TBD');
+    let matchDataRows = [];
+    for (let client in servicesByClient) {
+      for (let serviceName of servicesByClient[client]) {
+        let matchRow = [client];
+        matchRow.push(serviceName);
+        let providers = providersByService[serviceName];
+        let index = this.getRandomInt(providers.length);
+        matchRow.push(providers[index]);
+        matchDataRows.push(matchRow);
+      }
+    }
+    let matches = new SheetClass('Matches');
+    matches.setMultipleRows(2, matchDataRows);
   }
   doMatching() {
     const providerTabName = 'Services provided - categorized';
