@@ -86,6 +86,7 @@ class ProviderClientMatcher {
     let providerData = new SheetClass(providerTabName, providerWorkbookId);
     let clientData = new SheetClass(clientTabName);
     let providersByService = this.loadProviderData(providerData);
+    console.log(JSON.stringify(providersByService));
     let servicesByClient = this.loadClientData(clientData);
     this.matchThem(providersByService, servicesByClient);
   }
