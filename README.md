@@ -1,5 +1,11 @@
 # npi-lawyer-client-matching
 
+# None of this code is actually used
+
+- Google Sheets code was obviated by switch to Airtable
+- Airtable code is not used
+
+***
 Code for matching clients served with eviction notices with lawyers to handle the evictions.
 
 [Google Sheets README.md](google-sheets/README.md)
