@@ -1,6 +1,9 @@
+⚠️ **This project is no longer maintained!** ⚠️ The code here is archived for historical and educational purposes, but is no longer receiving bug fixes or updates, and is no longer in use by USDR partners.
+
+
 # npi-lawyer-client-matching
 
-# None of this code is actually used
+**None of this code is actually used**
 
 - Google Sheets code was obviated by switch to Airtable
 - Airtable code is not used
